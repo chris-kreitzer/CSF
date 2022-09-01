@@ -196,3 +196,67 @@ get_gene_position = function(genes) {
              mid = mid + cum_chrom_lengths[chrom-1]) 
   }
 }
+
+
+##-----------------
+## Save Facets-Output
+##-----------------
+create_facets_output = function(facets_output, 
+                                directory, 
+                                sample_id, 
+                                counts_file, 
+                                sel_run_type, 
+                                run_details) {
+  
+  library(patchwork)
+  library(dplyr)
+  
+  output_prefix = paste0(directory, '/', sample_id)
+  #' create cncf.txt
+  facets_output$segs %>%
+    mutate(ID = sample_id,
+           loc.start = start,
+           loc.end = end) %>%
+    select(ID, chrom, loc.start, loc.end, seg, num.mark, nhet, cnlr.median, mafR, 
+           segclust, cnlr.median.clust, mafR.clust, cf, tcn, lcn, 
+           cf.em, tcn.em, lcn.em) %>%
+    write.table(file = paste0(output_prefix, '.cncf.txt'), 
+                quote = F, 
+                row.names = F, 
+                sep = '\t')
+  
+  #' create .Rdata
+  out =
+    list(
+      jointseg = facets_output$snps,
+      out = facets_output$segs %>% 
+        select(chrom, seg, num.mark, nhet, cnlr.median, mafR, 
+               segclust, cnlr.median.clust, mafR.clust, cf, tcn, lcn),
+      nX = 23,
+      chromlevels = c(1:22, "X"),
+      dipLogR = facets_output$dipLogR,
+      alBalLogR = facets_output$alBalLogR,
+      IGV = NULL
+    )
+  fit = 
+    list(
+      loglik = facets_output$loglik,
+      purity = facets_output$purity,
+      ploidy = facets_output$ploidy,
+      dipLogR = facets_output$dipLogR,
+      seglen = -1,
+      cncf = facets_output$segs,
+      emflags = facets_output$em_flags
+    )
+  
+  save(out, fit, file = paste0(output_prefix, ".Rdata"), compress = T)
+  
+  #' create .CNCF.png
+  cnlr = facetsSuite::cnlr_plot(facets_output, return_object = T)
+  valor = facetsSuite::valor_plot(facets_output, return_object = T)
+  icn = facetsSuite::icn_plot(facets_output, return_object = T)
+  cf = facetsSuite::cf_plot(facets_output, return_object = T)
+  
+  aggregate_fit = cnlr/valor/icn/cf
+  ggsave(filename = paste0(output_prefix, ".pdf"), plot = aggregate_fit)
+}
