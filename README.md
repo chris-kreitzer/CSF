@@ -6,4 +6,5 @@
 - snp-pileup -x --> ignore thoes reads | when supplied -x (all reads are counted)   
 - -A count anomalous read pairs: https://www.biostars.org/p/91183/
 
-
+# finding a way to compare DMP/CSF samples;
+ratio between overlaps and non-overlaps perhaps
