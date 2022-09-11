@@ -9,11 +9,6 @@
 ## start: 08/31/2022
 ## chris-kreitzer
 
-clean()
-gc()
-# .rs.restartR()
-# setup(working.path = '~/Documents/MSKCC/Subhi/CSF/')
-
 
 multi_readSnpMatrix = function(filename, 
                                tumor_sample = 2,
