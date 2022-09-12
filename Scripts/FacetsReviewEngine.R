@@ -12,7 +12,7 @@ library(patchwork)
 source('~/Documents/GitHub/CSF/Scripts/UtilityFunctions.R')
 
 ## C_006884: countMatrix
-countMatrix_path = 'C_006884/C_006884_countmatrix_dat.gz'
+countMatrix_path = 'C_THJ/C_THJ_countMatrix.dat.gz'
 countMatrix_raw = read.csv(file = countMatrix_path, sep = ',')
 samples = grep(pattern = 'File*', colnames(countMatrix_raw))
 samples = (length(samples) - 4) / 4
@@ -26,12 +26,11 @@ genome = 'hg19'
 ##-----------------
 ## First RUN
 ##-----------------
-parameter_table = data.frame(tumor_sample = c(2,3,4,5,6),
-                             name = c('P-0024668-T01-IM6',
-                                      'P-0024668-T02-IM6',
-                                      's_C_006884_S001_d',
-                                      's_C_006884_S002_d',
-                                      's_C_006884_S003_d'),
+parameter_table = data.frame(tumor_sample = c(2,3,4,5),
+                             name = c('P-0009511-T02-IM5',
+                                      'P-0009511-T03-IM6',
+                                      's_C_THJT7J_S001_d',
+                                      's_C_THJT7J_S002_d'),
                              dipLogR = NA)
 gene_level_out = data.frame()
 facets_plots = list()
@@ -175,7 +174,7 @@ j = facets_fit_qc(fit)
 j
 fit$segs
 
-samples_dipLogR = c(0.03149, 0.003789, 0.02, 0.1129044, 0.2038815431)
+samples_dipLogR = c(-0.09901, 0.0934804, -0.02306294663361, 0.012657054)
 
   
 ##-----------------
@@ -309,7 +308,7 @@ for(tumor_sample in 1:nrow(parameter_table)){
        pass, clonality, cf.em, CnLR)
   }
   rm(facets_qc, qc_5parameters)
-  create_facets_output(facets_output = fit, directory = paste0(getwd(), '/C_006884/'), sample_id = parameter_table$name[tumor_sample])
+  create_facets_output(facets_output = fit, directory = paste0(getwd(), '/C_THJ/'), sample_id = parameter_table$name[tumor_sample])
 }
 
 
@@ -319,7 +318,7 @@ for(i in unique(gene_level_out$group)){
   gene_level_out$name[which(gene_level_out$group == i)] = parameter_table$name[i]
 }
 
-write.table(x = gene_level_out, file = 'C_006884/gene_level_out.txt', sep = '\t', quote = F, row.names = F)
+write.table(x = gene_level_out, file = 'C_THJ/gene_level_out.txt', sep = '\t', quote = F, row.names = F)
   
   
   
