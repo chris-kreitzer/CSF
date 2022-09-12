@@ -207,6 +207,8 @@ create_facets_output = function(facets_output,
   library(dplyr)
   
   output_prefix = paste0(directory, '/', sample_id)
+  dir.create(path = output_prefix)
+  
   #' create cncf.txt
   facets_output$segs %>%
     mutate(ID = sample_id,
@@ -215,7 +217,7 @@ create_facets_output = function(facets_output,
     select(ID, chrom, loc.start, loc.end, seg, num.mark, nhet, cnlr.median, mafR, 
            segclust, cnlr.median.clust, mafR.clust, cf, tcn, lcn, 
            cf.em, tcn.em, lcn.em) %>%
-    write.table(file = paste0(output_prefix, '.cncf.txt'), 
+    write.table(file = paste0(output_prefix, '/', basename(output_prefix), '.cncf.txt'), 
                 quote = F, 
                 row.names = F, 
                 sep = '\t')
@@ -244,7 +246,7 @@ create_facets_output = function(facets_output,
       emflags = facets_output$em_flags
     )
   
-  save(out, fit, file = paste0(output_prefix, ".Rdata"), compress = T)
+  save(out, fit, file = paste0(output_prefix, '/', basename(output_prefix), ".Rdata"), compress = T)
   
   #' create .CNCF.png
   cnlr = facetsSuite::cnlr_plot(facets_output, return_object = T)
@@ -253,5 +255,5 @@ create_facets_output = function(facets_output,
   cf = facetsSuite::cf_plot(facets_output, return_object = T)
   
   aggregate_fit = cnlr/valor/icn/cf
-  ggsave(filename = paste0(output_prefix, ".pdf"), plot = aggregate_fit)
+  ggsave(filename = paste0(output_prefix, '/', basename(output_prefix),  ".pdf"), plot = aggregate_fit)
 }
