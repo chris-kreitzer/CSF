@@ -12,7 +12,7 @@ library(patchwork)
 source('~/Documents/GitHub/CSF/Scripts/UtilityFunctions.R')
 
 ## C_006884: countMatrix
-countMatrix_path = 'C_THJ/C_THJ_countMatrix.dat.gz'
+countMatrix_path = 'C_RMD41N/C_RMD41N__countMatrix.dat.gz'
 countMatrix_raw = read.csv(file = countMatrix_path, sep = ',')
 samples = grep(pattern = 'File*', colnames(countMatrix_raw))
 samples = (length(samples) - 4) / 4
@@ -26,11 +26,10 @@ genome = 'hg19'
 ##-----------------
 ## First RUN
 ##-----------------
-parameter_table = data.frame(tumor_sample = c(2,3,4,5),
-                             name = c('P-0009511-T02-IM5',
-                                      'P-0009511-T03-IM6',
-                                      's_C_THJT7J_S001_d',
-                                      's_C_THJT7J_S002_d'),
+parameter_table = data.frame(tumor_sample = c(2,3,4),
+                             name = c('P-0007756-T01-IM5',
+                                      's_C_RMD41N_S001_d',
+                                      's_C_RMD41N_S001_d01'),
                              dipLogR = NA)
 gene_level_out = data.frame()
 facets_plots = list()
@@ -101,7 +100,7 @@ for(tumor_sample in 1:nrow(parameter_table)){
                                    fit$snps$maploc >= gene_start & 
                                    fit$snps$maploc <= gene_end), 'cnlr']
       gene_snps = as.numeric(gene_snps)
-      CnLR = mean(gene_snps)
+      CnLR = mean(gene_snps, na.rm = T)
       cf.em = gene_level[which(gene_level$gene == gene), 'cf.em']
     } else {
       CnLR = NA
@@ -124,10 +123,12 @@ for(tumor_sample in 1:nrow(parameter_table)){
                                  fit$snps$maploc <= gene_end), 'cnlr']
     gene_snps = as.numeric(gene_snps)
     
-    if(CnLR > 0){
+    if(!is.na(CnLR) & CnLR > 0){
       one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "greater")$p.value
-    } else {
+    } else if (!is.na(CnLR) & CnLR < 0) {
       one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "less")$p.value
+    } else {
+      one_sided_test = NA
     }
     
     
@@ -157,7 +158,7 @@ for(tumor_sample in 1:nrow(parameter_table)){
 ##-----------------
 ## manual inspection and re-run
 ##-----------------
-manual = multi_readSnpMatrix(filename = 'C_006884/C_006884_countmatrix_dat.gz', tumor_sample = 6)
+manual = multi_readSnpMatrix(filename = 'C_RMD41N/C_RMD41N__countMatrix.dat.gz', tumor_sample = 4)
 fit = facetsSuite::run_facets(read_counts = manual, 
                               cval = cval,
                               min_nhet = min_het,
@@ -174,7 +175,7 @@ j = facets_fit_qc(fit)
 j
 fit$segs
 
-samples_dipLogR = c(-0.09901, 0.0934804, -0.02306294663361, 0.012657054)
+samples_dipLogR = c(0.0337117949, 0.12, 0.12)
 
   
 ##-----------------
@@ -308,7 +309,7 @@ for(tumor_sample in 1:nrow(parameter_table)){
        pass, clonality, cf.em, CnLR)
   }
   rm(facets_qc, qc_5parameters)
-  create_facets_output(facets_output = fit, directory = paste0(getwd(), '/C_THJ/'), sample_id = parameter_table$name[tumor_sample])
+  create_facets_output(facets_output = fit, directory = paste0(getwd(), '/C_RMD41N/'), sample_id = parameter_table$name[tumor_sample])
 }
 
 
@@ -318,7 +319,7 @@ for(i in unique(gene_level_out$group)){
   gene_level_out$name[which(gene_level_out$group == i)] = parameter_table$name[i]
 }
 
-write.table(x = gene_level_out, file = 'C_THJ/gene_level_out.txt', sep = '\t', quote = F, row.names = F)
+write.table(x = gene_level_out, file = 'C_RMD41N/gene_level_out.txt', sep = '\t', quote = F, row.names = F)
   
   
   
