@@ -1,3 +1,12 @@
+##-----------------
+## Organizing snp-pileup function
+## for running on cluster; for CSF samples
+##-----------------
+##
+## 09/26/2022
+## chris-kreitzer
+
+
 clean()
 .rs.restartR()
 library(stringr)
@@ -8,20 +17,20 @@ sample_pairing = read.csv('~/Documents/MSKCC/Subhi/CSF/Data/FINAL_samples/sample
 research = read.csv('~/Documents/MSKCC/Subhi/CSF/Data/files.txt', sep = '\t', header = F)
 research$V1 = NULL
 
-ids = read.csv('~/Documents/MSKCC/Subhi/CSF/Data/FINAL_samples/data_clinical_sample.txt', sep = '\t', skip = 3)
-colnames(ids) = ids[1, ]
-ids = ids[-1, c('SAMPLE_ID', 'PATIENT_ID')]
-ids$PATIENT_ID = ifelse(grepl('C-', ids$PATIENT_ID), ids$PATIENT_ID, paste0('C-', ids$PATIENT_ID))
+ids = read.csv('~/Documents/MSKCC/Subhi/CSF/Data/FINAL_samples/Final_CSF_Samples.txt', sep = '\t')
+#colnames(ids) = ids[1, ]
+#ids = ids[-1, c('SAMPLE_ID', 'PATIENT_ID')]
+#ids$PATIENT_ID = ifelse(grepl('C-', ids$PATIENT_ID), ids$PATIENT_ID, paste0('C-', ids$PATIENT_ID))
 
 
 dmp_path = '/juno/res/dmpcollab/dmpshare/share/irb12_245/'
 research_path = '/juno/res/ci/share/schultz/'
 
 all_out = data.frame()
-for(i in unique(ids$PATIENT_ID)){
-  sample_subset = ids[which(ids$PATIENT_ID == i), ]
+for(i in unique(ids$Patient.ID)){
+  sample_subset = ids[which(ids$Patient.ID == i), ]
   for(j in 1:nrow(sample_subset)){
-    id = sample_subset$SAMPLE_ID[j]
+    id = sample_subset$Sample.ID[j]
     if(grepl('_N90', id)) next
     else {
       print(id)
@@ -62,7 +71,30 @@ for(i in unique(ids$PATIENT_ID)){
 }
 
 all_out = all_out[!with(all_out, is.na(sample) & is.na(path)), ]
+all_out = all_out[!with(all_out, duplicated(sample) & duplicated(path)), ]
 CSF_out = all_out %>% distinct(sample, path, .keep_all = TRUE)
+
+
+nu = data.frame()
+for(i in unique(all_out$PATIENT_ID)){
+  n = length(unique(all_out$sample[which(all_out$PATIENT_ID == i)]))
+  out = data.frame(id = i,
+                   n = n)
+  nu = rbind(nu, out)
+}
+
+na = data.frame()
+for(i in unique(ids$Patient.ID)){
+  n = length(unique(ids$Sample.ID[which(ids$Patient.ID == i)]))
+  out = data.frame(id = i,
+                   n = n)
+  na = rbind(na, out)
+}
+
+colnames(na) = c('id.o', 'n.o')
+ne = merge(nu, na, by.x = 'id', by.y = 'id.o', all.x = T)
+m.normal = ifelse(ne$n - ne$n.o == 0, ne$id, 'NA')
+m.normal = m.normal[!m.normal == 'NA']
 
 
 ##-----------------
