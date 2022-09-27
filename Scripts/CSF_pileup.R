@@ -20,8 +20,10 @@ for(i in unique(snp_files$PATIENT_ID)){
       
       normal = list.files(path = paste0(output_path, i), pattern = 'N0|-N.', full.names = T)
       normal = grep(pattern = '.bam$', x = normal, value = T)
+      normal.bai = grep(pattern = '.bai$', x = normal, value = T)
       
       tumor = list.files(path = paste0(output_path, i), pattern = '.bam$', full.names = T)
+      tumor.bai = list.files(path = paste0(output_path, i), pattern = '.bai$', full.names = T)
       tumor = tumor[!tumor %in% normal]
       
       n = length(unique(tumor))
@@ -36,6 +38,8 @@ for(i in unique(snp_files$PATIENT_ID)){
                          pileup_file = seq(2, n + 1, 1))
         system(command = paste0('rm ', normal, ' ', tumor[1], ' ', tumor[2], ' ',
                                 tumor[3], ' ', tumor[4], ' ', tumor[5], ' ', tumor[6], ' ', tumor[7], ' ', tumor[8], ' ', tumor[9]))
+        system(command = paste0('rm ', normal.bai, ' ', tumor.bai[1], ' ', tumor.bai[2], ' ',
+                                tumor.bai[3], ' ', tumor.bai[4], ' ', tumor.bai[5], ' ', tumor.bai[6], ' ', tumor.bai[7], ' ', tumor.bai[8], ' ', tumor.bai[9]))
         
       } else if(n == 8){
         system(command = paste0('snp-pileup -A -P50 -q15 -Q20 -r5,0 -g /juno/work/ci/resources/genomes/GRCh37/facets_snps/dbsnp_137.b37__RmDupsClean__plusPseudo50__DROP_SORT.vcf.gz ',
@@ -47,6 +51,8 @@ for(i in unique(snp_files$PATIENT_ID)){
                          pileup_file = seq(2, n+1, 1))
         system(command = paste0('rm ', normal, ' ', tumor[1], ' ', tumor[2], ' ',
                                 tumor[3], ' ', tumor[4], ' ', tumor[5], ' ', tumor[6], ' ', tumor[7], ' ', tumor[8]))
+        system(command = paste0('rm ', normal.bai, ' ', tumor.bai[1], ' ', tumor.bai[2], ' ',
+                                tumor.bai[3], ' ', tumor.bai[4], ' ', tumor.bai[5], ' ', tumor.bai[6], ' ', tumor.bai[7], ' ', tumor.bai[8]))
         
       } else if (n == 7) {
         system(command = paste0('snp-pileup -A -P50 -q15 -Q20 -r5,0 -g /juno/work/ci/resources/genomes/GRCh37/facets_snps/dbsnp_137.b37__RmDupsClean__plusPseudo50__DROP_SORT.vcf.gz ',
@@ -58,6 +64,8 @@ for(i in unique(snp_files$PATIENT_ID)){
                          pileup_file = seq(2, n+1, 1))
         system(command = paste0('rm ', normal, ' ', tumor[1], ' ', tumor[2], ' ',
                                 tumor[3], ' ', tumor[4], ' ', tumor[5], ' ', tumor[6], ' ', tumor[7]))
+        system(command = paste0('rm ', normal.bai, ' ', tumor.bai[1], ' ', tumor.bai[2], ' ',
+                                tumor.bai[3], ' ', tumor.bai[4], ' ', tumor.bai[5], ' ', tumor.bai[6], ' ', tumor.bai[7]))
         
       } else if (n == 6) {
         system(command = paste0('snp-pileup -A -P50 -q15 -Q20 -r5,0 -g /juno/work/ci/resources/genomes/GRCh37/facets_snps/dbsnp_137.b37__RmDupsClean__plusPseudo50__DROP_SORT.vcf.gz ',
@@ -69,6 +77,8 @@ for(i in unique(snp_files$PATIENT_ID)){
                          pileup_file = seq(2, n+1, 1))
         system(command = paste0('rm ', normal, ' ', tumor[1], ' ', tumor[2], ' ',
                                 tumor[3], ' ', tumor[4], ' ', tumor[5], ' ', tumor[6]))
+        system(command = paste0('rm ', normal.bai, ' ', tumor.bai[1], ' ', tumor.bai[2], ' ',
+                                tumor.bai[3], ' ', tumor.bai[4], ' ', tumor.bai[5], ' ', tumor.bai[6]))
         
       } else if (n == 5) {
         system(command = paste0('snp-pileup -A -P50 -q15 -Q20 -r5,0 -g /juno/work/ci/resources/genomes/GRCh37/facets_snps/dbsnp_137.b37__RmDupsClean__plusPseudo50__DROP_SORT.vcf.gz ',
@@ -79,6 +89,8 @@ for(i in unique(snp_files$PATIENT_ID)){
                          pileup_file = seq(2, n+1, 1))
         system(command = paste0('rm ', normal, ' ', tumor[1], ' ', tumor[2], ' ',
                                 tumor[3], ' ', tumor[4], ' ', tumor[5]))
+        system(command = paste0('rm ', normal.bai, ' ', tumor.bai[1], ' ', tumor.bai[2], ' ',
+                                tumor.bai[3], ' ', tumor.bai[4], ' ', tumor.bai[5]))
         
       } else if (n == 4) {
         system(command = paste0('snp-pileup -A -P50 -q15 -Q20 -r5,0 -g /juno/work/ci/resources/genomes/GRCh37/facets_snps/dbsnp_137.b37__RmDupsClean__plusPseudo50__DROP_SORT.vcf.gz ',
@@ -89,6 +101,8 @@ for(i in unique(snp_files$PATIENT_ID)){
                          pileup_file = seq(2, n+1, 1))
         system(command = paste0('rm ', normal, ' ', tumor[1], ' ', tumor[2], ' ',
                                 tumor[3], ' ', tumor[4]))
+        system(command = paste0('rm ', normal.bai, ' ', tumor.bai[1], ' ', tumor.bai[2], ' ',
+                                tumor.bai[3], ' ', tumor.bai[4]))
         
       } else if (n == 3) {
         system(command = paste0('snp-pileup -A -P50 -q15 -Q20 -r5,0 -g /juno/work/ci/resources/genomes/GRCh37/facets_snps/dbsnp_137.b37__RmDupsClean__plusPseudo50__DROP_SORT.vcf.gz ',
@@ -99,6 +113,8 @@ for(i in unique(snp_files$PATIENT_ID)){
                          pileup_file = seq(2, n+1, 1))
         system(command = paste0('rm ', normal, ' ', tumor[1], ' ', tumor[2], ' ',
                                 tumor[3]))
+        system(command = paste0('rm ', normal.bai, ' ', tumor.bai[1], ' ', tumor.bai[2], ' ',
+                                tumor.bai[3]))
         
       } else if (n == 2) {
         system(command = paste0('snp-pileup -A -P50 -q15 -Q20 -r5,0 -g /juno/work/ci/resources/genomes/GRCh37/facets_snps/dbsnp_137.b37__RmDupsClean__plusPseudo50__DROP_SORT.vcf.gz ',
@@ -107,6 +123,7 @@ for(i in unique(snp_files$PATIENT_ID)){
                          sample = c(tumor[1], tumor[2]),
                          pileup_file = seq(2, n+1, 1))
         system(command = paste0('rm ', normal, ' ', tumor[1], ' ', tumor[2]))
+        system(command = paste0('rm ', normal.bai, ' ', tumor.bai[1], ' ', tumor.bai[2]))
         
       } else if (n == 1) {
         system(command = paste0('snp-pileup -A -P50 -q15 -Q20 -r5,0 -g /juno/work/ci/resources/genomes/GRCh37/facets_snps/dbsnp_137.b37__RmDupsClean__plusPseudo50__DROP_SORT.vcf.gz ',
@@ -115,6 +132,7 @@ for(i in unique(snp_files$PATIENT_ID)){
                          sample = c(tumor[1]),
                          pileup_file = seq(2, n+1, 1))
         system(command = paste0('rm ', normal, ' ', tumor[1]))
+        system(command = paste0('rm ', normal.bai, ' ', tumor.bai[1]))
       } else next
       snp_files_out = rbind(snp_files_out, out)
     }
