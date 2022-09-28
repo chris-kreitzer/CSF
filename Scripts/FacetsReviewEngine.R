@@ -2,6 +2,7 @@
 ## using Facets!
 ## 
 ## start: 09/11/2022
+## revision: 09/28/2022
 ## chris-kreitzer
 
 clean()
@@ -10,12 +11,17 @@ gc()
 setup(working.path = '~/Documents/MSKCC/Subhi/CSF/')
 library(patchwork)
 source('~/Documents/GitHub/CSF/Scripts/UtilityFunctions.R')
+snp_pileup = read.csv('snp_files_out.txt', sep = '\t')
+sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
 
-## C_006884: countMatrix
-countMatrix_path = 'C_DA3H4U/C_DA3__countMatrix.dat.gz'
+
+## C_000499: countMatrix
+countMatrix_path = 'C-000499/C-000499__countMatrix.dat.gz'
 countMatrix_raw = read.csv(file = countMatrix_path, sep = ',')
 samples = grep(pattern = 'File*', colnames(countMatrix_raw))
 samples = (length(samples) - 4) / 4
+ID = 'C-000499'
+snp_pileup[which(snp_pileup$Patient_ID == ID), ]
 
 ## Parameters: (exclusively purity runs); not interested in gene_level alterations
 cval = 100
@@ -23,15 +29,14 @@ seed = 100
 min_het = 15
 genome = 'hg19'
 
+
 ##-----------------
 ## First RUN
 ##-----------------
-parameter_table = data.frame(tumor_sample = c(2,3,4,5),
-                             name = c('P-0000928-T01-IM3',
-                                      'P-0000928-T02-IM6',
-                                      's_C_DA3H4U_L001_d',
-                                      's_C_DA3H4U_L002_d'),
+parameter_table = data.frame(tumor_sample = snp_pileup$pileup_file[which(snp_pileup$Patient_ID == ID)],
+                             name = basename(snp_pileup$sample[which(snp_pileup$Patient_ID == ID)]),
                              dipLogR = NA)
+
 gene_level_out = data.frame()
 facets_plots = list()
 for(tumor_sample in 1:nrow(parameter_table)){
@@ -156,27 +161,28 @@ for(tumor_sample in 1:nrow(parameter_table)){
 }
 
 
+
 ##-----------------
 ## manual inspection and re-run
 ##-----------------
-manual = multi_readSnpMatrix(filename = 'C_DA3H4U/C_DA3__countMatrix.dat.gz', tumor_sample = 4)
+manual = multi_readSnpMatrix(filename = countMatrix_path, tumor_sample = 4)
 fit = facetsSuite::run_facets(read_counts = manual, 
                               cval = cval,
                               min_nhet = min_het,
                               seed = seed,
-                              genome = 'hg19', 0.01)
+                              genome = 'hg19', -0.05)
 fit$dipLogR
 i = facetsSuite::cnlr_plot(fit, return_object = T)
 ii = facetsSuite::valor_plot(fit, return_object = T)
 iii = facetsSuite::icn_plot(fit, return_object = T)
 iv = facetsSuite::cf_plot(fit, return_object = T)
+dev.off()
 i / ii/ iii/ iv
-
 j = facets_fit_qc(fit)
 j
 View(fit$segs)
 
-samples_dipLogR = c(0, 0.15, 0.01, -0.0495819507053159)
+samples_dipLogR = c(0.06009, -0.01, -0.05)
 
 
 ##-----------------
@@ -283,7 +289,7 @@ for(tumor_sample in 1:nrow(parameter_table)){
                                  fit$snps$maploc <= gene_end), 'cnlr']
     gene_snps = as.numeric(gene_snps)
     
-    if(CnLR > 0){
+    if(CnLR != 0 & CnLR > 0){
       one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "greater")$p.value
     } else {
       one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "less")$p.value
@@ -310,7 +316,8 @@ for(tumor_sample in 1:nrow(parameter_table)){
        pass, clonality, cf.em, CnLR)
   }
   rm(facets_qc, qc_5parameters)
-  create_facets_output(facets_output = fit, directory = paste0(getwd(), '/C_DA3H4U/'), sample_id = parameter_table$name[tumor_sample])
+  create_facets_output(facets_output = fit, directory = paste0(getwd(), '/', gsub("/.*$", "", countMatrix_path), '/'), 
+                       sample_id = parameter_table$name[tumor_sample])
 }
 
 
