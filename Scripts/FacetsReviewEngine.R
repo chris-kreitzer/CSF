@@ -195,10 +195,12 @@ min_het = 15
 genome = 'hg19'
 
 parameter_table$dipLogR = samples_dipLogR
-
+dev.off()
 gene_level_out = data.frame()
 facets_plots = list()
+parameter_table$ID = NA
 for(tumor_sample in 1:nrow(parameter_table)){
+  parameter_table$ID[tumor_sample] = sample_match$sample[grepl(parameter_table$name[tumor_sample], sample_match$path)]
   countMatrix = multi_readSnpMatrix(filename = countMatrix_path, 
                                     tumor_sample = parameter_table$tumor_sample[tumor_sample])
   
@@ -289,11 +291,15 @@ for(tumor_sample in 1:nrow(parameter_table)){
                                  fit$snps$maploc <= gene_end), 'cnlr']
     gene_snps = as.numeric(gene_snps)
     
-    if(CnLR != 0 & CnLR > 0){
-      one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "greater")$p.value
-    } else {
-      one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "less")$p.value
-    }
+    # if(CnLR > 0){
+    #   one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "greater")$p.value
+    #   
+    # } else if (CnLR < 0) {
+    #   one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "less")$p.value
+    #   
+    # } else if (is.na(CnLR)) {
+    #   one_sided_test = NA
+    # }
     
     
     #' prepare output
@@ -305,7 +311,7 @@ for(tumor_sample in 1:nrow(parameter_table)){
                      cf.em = cf.em,
                      dipLogR_original = dipLogR_original,
                      cnlr = CnLR,
-                     one_sided_pvalue = one_sided_test,
+                     #one_sided_pvalue = one_sided_test,
                      pass = pass, 
                      group = tumor_sample)
     
@@ -316,22 +322,33 @@ for(tumor_sample in 1:nrow(parameter_table)){
        pass, clonality, cf.em, CnLR)
   }
   rm(facets_qc, qc_5parameters)
-  create_facets_output(facets_output = fit, directory = paste0(getwd(), '/', gsub("/.*$", "", countMatrix_path), '/'), 
-                       sample_id = parameter_table$name[tumor_sample])
+  create_facets_output(facets_output = fit, 
+                       directory = paste0(getwd(), '/', gsub("/.*$", "", countMatrix_path), '/'), 
+                       sample_id = parameter_table$ID[tumor_sample])
 }
 
-
+rm(countMatrix, countMatrix_raw, gene_level, genefit, ii, iii, iv, out, i, filters, 
+   tumor_sample, seed, samples_dipLogR, samples, purity, gene, cval, all_plots, facets_plots, fit)
 
 gene_level_out$name = NA
 for(i in unique(gene_level_out$group)){
   gene_level_out$name[which(gene_level_out$group == i)] = parameter_table$name[i]
 }
 
-write.table(x = gene_level_out, file = 'C_DA3H4U/gene_level_out.txt', sep = '\t', quote = F, row.names = F)
-  
-  
-  
-  
+write.table(x = gene_level_out, file = paste0(gsub("/.*$", "", countMatrix_path), '/', 'gene_level_out.txt'), sep = '\t', quote = F, row.names = F)
+write.table(parameter_table, file = paste0(gsub("/.*$", "", countMatrix_path), '/', 'parameterTable.txt'), sep = '\t', quote = F, row.names = F)
+
+
+
+
+
+
+##' test:
+rds = load('C-000499/s_C_000499_L002_d/s_C_000499_L002_d.Rdata')  
+
+
+
+
   
   
 
