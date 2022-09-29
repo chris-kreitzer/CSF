@@ -15,12 +15,12 @@ snp_pileup = read.csv('snp_files_out.txt', sep = '\t')
 sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
 
 
-## C_000499: countMatrix
-countMatrix_path = 'C-000499/C-000499__countMatrix.dat.gz'
+## C-000597: countMatrix
+countMatrix_path = 'C-000624/C-000624__countMatrix.dat.gz'
 countMatrix_raw = read.csv(file = countMatrix_path, sep = ',')
 samples = grep(pattern = 'File*', colnames(countMatrix_raw))
 samples = (length(samples) - 4) / 4
-ID = 'C-000499'
+ID = 'C-000624'
 snp_pileup[which(snp_pileup$Patient_ID == ID), ]
 
 ## Parameters: (exclusively purity runs); not interested in gene_level alterations
@@ -36,7 +36,7 @@ genome = 'hg19'
 parameter_table = data.frame(tumor_sample = snp_pileup$pileup_file[which(snp_pileup$Patient_ID == ID)],
                              name = basename(snp_pileup$sample[which(snp_pileup$Patient_ID == ID)]),
                              dipLogR = NA)
-
+dev.off()
 gene_level_out = data.frame()
 facets_plots = list()
 for(tumor_sample in 1:nrow(parameter_table)){
@@ -129,13 +129,13 @@ for(tumor_sample in 1:nrow(parameter_table)){
                                  fit$snps$maploc <= gene_end), 'cnlr']
     gene_snps = as.numeric(gene_snps)
     
-    if(!is.na(CnLR) & CnLR > 0){
-      one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "greater")$p.value
-    } else if (!is.na(CnLR) & CnLR < 0) {
-      one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "less")$p.value
-    } else {
-      one_sided_test = NA
-    }
+    # if(!is.na(CnLR) & CnLR > 0){
+    #   one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "greater")$p.value
+    # } else if (!is.na(CnLR) & CnLR < 0) {
+    #   one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "less")$p.value
+    # } else {
+    #   one_sided_test = NA
+    # }
     
     
     #' prepare output
@@ -147,7 +147,7 @@ for(tumor_sample in 1:nrow(parameter_table)){
                      cf.em = cf.em,
                      dipLogR_original = dipLogR_original,
                      cnlr = CnLR,
-                     one_sided_pvalue = one_sided_test,
+                     #one_sided_pvalue = one_sided_test,
                      pass = pass, 
                      group = tumor_sample)
     
@@ -170,7 +170,7 @@ fit = facetsSuite::run_facets(read_counts = manual,
                               cval = cval,
                               min_nhet = min_het,
                               seed = seed,
-                              genome = 'hg19', -0.05)
+                              genome = 'hg19', 0.25)
 fit$dipLogR
 i = facetsSuite::cnlr_plot(fit, return_object = T)
 ii = facetsSuite::valor_plot(fit, return_object = T)
@@ -182,7 +182,8 @@ j = facets_fit_qc(fit)
 j
 View(fit$segs)
 
-samples_dipLogR = c(0.06009, -0.01, -0.05)
+
+samples_dipLogR = c(-0.0232815931558547, 0.3, 0.25)
 
 
 ##-----------------
@@ -327,7 +328,7 @@ for(tumor_sample in 1:nrow(parameter_table)){
                        sample_id = parameter_table$ID[tumor_sample])
 }
 
-rm(countMatrix, countMatrix_raw, gene_level, genefit, ii, iii, iv, out, i, filters, 
+rm(countMatrix, countMatrix_raw, gene_level, ii, iii, iv, out, i, filters, 
    tumor_sample, seed, samples_dipLogR, samples, purity, gene, cval, all_plots, facets_plots, fit)
 
 gene_level_out$name = NA
