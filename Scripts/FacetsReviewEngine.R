@@ -13,14 +13,14 @@ library(patchwork)
 source('~/Documents/GitHub/CSF/Scripts/UtilityFunctions.R')
 snp_pileup = read.csv('snp_files_out.txt', sep = '\t')
 sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
-
+sample_pairing = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
 
 ## C-000597: countMatrix
-countMatrix_path = 'C-000624/C-000624__countMatrix.dat.gz'
+countMatrix_path = 'C-001408/C-001408__countMatrix.dat.gz'
 countMatrix_raw = read.csv(file = countMatrix_path, sep = ',')
 samples = grep(pattern = 'File*', colnames(countMatrix_raw))
 samples = (length(samples) - 4) / 4
-ID = 'C-000624'
+ID = 'C-001408'
 snp_pileup[which(snp_pileup$Patient_ID == ID), ]
 
 ## Parameters: (exclusively purity runs); not interested in gene_level alterations
@@ -36,6 +36,13 @@ genome = 'hg19'
 parameter_table = data.frame(tumor_sample = snp_pileup$pileup_file[which(snp_pileup$Patient_ID == ID)],
                              name = basename(snp_pileup$sample[which(snp_pileup$Patient_ID == ID)]),
                              dipLogR = NA)
+
+if(any(grepl(pattern = '_N90', parameter_table$name))){
+  parameter_table = parameter_table[!grepl(pattern = '_N90', parameter_table$name), ]
+  parameter_table$tumor_sample = seq(2, nrow(parameter_table) + 1, 1)
+}
+
+
 dev.off()
 gene_level_out = data.frame()
 facets_plots = list()
@@ -165,12 +172,12 @@ for(tumor_sample in 1:nrow(parameter_table)){
 ##-----------------
 ## manual inspection and re-run
 ##-----------------
-manual = multi_readSnpMatrix(filename = countMatrix_path, tumor_sample = 4)
+manual = multi_readSnpMatrix(filename = countMatrix_path, tumor_sample = 3)
 fit = facetsSuite::run_facets(read_counts = manual, 
                               cval = cval,
                               min_nhet = min_het,
                               seed = seed,
-                              genome = 'hg19', 0.25)
+                              genome = 'hg19', 0.08)
 fit$dipLogR
 i = facetsSuite::cnlr_plot(fit, return_object = T)
 ii = facetsSuite::valor_plot(fit, return_object = T)
@@ -183,7 +190,7 @@ j
 View(fit$segs)
 
 
-samples_dipLogR = c(-0.0232815931558547, 0.3, 0.25)
+samples_dipLogR = c(0.1027631692642)
 
 
 ##-----------------
