@@ -16,11 +16,11 @@ sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
 sample_pairing = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
 
 ## C-000597: countMatrix
-countMatrix_path = 'C-006876/C-006876__countMatrix.dat.gz'
+countMatrix_path = 'C-006889/C-006889__countMatrix.dat.gz'
 countMatrix_raw = read.csv(file = countMatrix_path, sep = ',')
 samples = grep(pattern = 'File*', colnames(countMatrix_raw))
 samples = (length(samples) - 4) / 4
-ID = 'C-006876'
+ID = 'C-006889'
 snp_pileup[which(snp_pileup$Patient_ID == ID), ]
 
 ## Parameters: (exclusively purity runs); not interested in gene_level alterations
@@ -37,9 +37,10 @@ parameter_table = data.frame(tumor_sample = snp_pileup$pileup_file[which(snp_pil
                              name = basename(snp_pileup$sample[which(snp_pileup$Patient_ID == ID)]),
                              dipLogR = NA)
 
-if(any(grepl(pattern = '_N90', parameter_table$name) | grepl(pattern = 'POOLED', parameter_table$name))){
+if(any(grepl(pattern = '_N90', parameter_table$name) | grepl(pattern = 'POOLED', parameter_table$name) | grepl(pattern = '_FROZEN', parameter_table$name))){
   parameter_table = parameter_table[!grepl(pattern = '_N90', parameter_table$name), ]
   parameter_table = parameter_table[!grepl(pattern = 'POOLED', parameter_table$name), ]
+  parameter_table = parameter_table[!grepl(pattern = '_FROZEN', parameter_table$name), ]
   parameter_table$tumor_sample = seq(2, nrow(parameter_table) + 1, 1)
 }
 
@@ -102,48 +103,61 @@ for(tumor_sample in 1:nrow(parameter_table)){
       try({
         #' Facets CnLR estimates
         if(facets_qc$facets_qc & qc_5parameters){
-          CnLR = gene_level[which(gene_level$gene == gene), 'median_cnlr_seg']
-          CnLR = ifelse(is.nan(CnLR) | is.na(CnLR) | length(CnLR) == 0, NA, CnLR - dipLogR_original)
-          cf.em = gene_level[which(gene_level$gene == gene), 'cf.em']
-          cf.em = ifelse(is.nan(cf.em) | is.na(cf.em) | length(cf.em) == 0, NA, cf.em)
-          
+          if(gene %in% gene_level$gene){
+            CnLR = gene_level[which(gene_level$gene == gene), 'median_cnlr_seg']
+            CnLR = ifelse(is.nan(CnLR) | is.na(CnLR) | length(CnLR) == 0, NA, CnLR - dipLogR_original)
+            cf.em = gene_level[which(gene_level$gene == gene), 'cf.em']
+            cf.em = ifelse(is.nan(cf.em) | is.na(cf.em) | length(cf.em) == 0, NA, cf.em)
+            gene_cn = gene_level[which(gene_level$gene == gene), 'cn_state']
+            clonality = ifelse(cf.em >= (purity * 0.8), 'clonal', 'subclonal')
+            pass = gene_level[which(gene_level$gene == gene), 'filter']
+            
+          } else {
+            CnLR = NA
+            cf.em = NA
+            gene_cn = NA
+            clonality = NA
+            pass = NA
+          }
           
         } else if (facets_qc$facets_qc | qc_5parameters) {
-          gene_chrom = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'chrom'])
-          gene_start = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'start'])
-          gene_end = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'end'])
-          gene_snps = fit$snps[which(fit$snps$chrom == gene_chrom & 
-                                       fit$snps$maploc >= gene_start & 
-                                       fit$snps$maploc <= gene_end), 'cnlr']
-          print(paste0(gene, ' ', gene_snps))
-          gene_snps = as.numeric(gene_snps)
-          CnLR = ifelse(is.nan(gene_snps) | is.na(gene_snps) | length(gene_snps) == 0, NA, mean(gene_snps, na.rm = T))
-          cf.em = gene_level[which(gene_level$gene == gene), 'cf.em']
-          cf.em = ifelse(is.nan(cf.em) | is.na(cf.em) | length(cf.em) == 0, NA, cf.em)
+          if(gene %in% gene_level$gene){
+            gene_chrom = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'chrom'])
+            gene_start = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'start'])
+            gene_end = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'end'])
+            gene_snps = fit$snps[which(fit$snps$chrom == gene_chrom & 
+                                         fit$snps$maploc >= gene_start & 
+                                         fit$snps$maploc <= gene_end), 'cnlr']
+            gene_snps = as.numeric(gene_snps)
+            CnLR = ifelse(is.nan(gene_snps) | is.na(gene_snps) | length(gene_snps) == 0, NA, mean(gene_snps, na.rm = T))
+            cf.em = gene_level[which(gene_level$gene == gene), 'cf.em']
+            cf.em = ifelse(is.nan(cf.em) | is.na(cf.em) | length(cf.em) == 0, NA, cf.em)
+            gene_cn = gene_level[which(gene_level$gene == gene), 'cn_state']
+            clonality = ifelse(cf.em >= (purity * 0.8), 'clonal', 'subclonal')
+            pass = gene_level[which(gene_level$gene == gene), 'filter']
+            
+          } else {
+            CnLR = NA
+            cf.em = NA
+            gene_cn = NA
+            clonality = NA
+            pass = NA
+          }
           
         } else {
           CnLR = NA
           cf.em = NA
+          gene_cn = NA
+          clonality = NA
+          pass = NA
         }
         
-        #' assign clonality
-        clonality = ifelse(cf.em >= (purity * 0.8), 'clonal', 'subclonal')
-        print(clonality)
-        gene_cn = gene_level[which(gene_level$gene == gene), 'cn_state']
-        print(gene_cn)
-        pass = gene_level[which(gene_level$gene == gene), 'filter']
         
         #' t-test against baseline dipLogR
         # gene_chrom = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'chrom'])
         # gene_start = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'start'])
         # gene_end = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'end'])
-        
-        #' snps
-        gene_snps = fit$snps[which(fit$snps$chrom == gene_chrom & 
-                                     fit$snps$maploc >= gene_start & 
-                                     fit$snps$maploc <= gene_end), 'cnlr']
-        gene_snps = as.numeric(gene_snps)
-        
+        # 
         # if(!is.na(CnLR) & CnLR > 0){
         #   one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "greater")$p.value
         # } else if (!is.na(CnLR) & CnLR < 0) {
@@ -162,7 +176,6 @@ for(tumor_sample in 1:nrow(parameter_table)){
                          cf.em = cf.em,
                          dipLogR_original = dipLogR_original,
                          cnlr = CnLR,
-                         #one_sided_pvalue = one_sided_test,
                          pass = pass, 
                          group = tumor_sample)
         
@@ -171,11 +184,11 @@ for(tumor_sample in 1:nrow(parameter_table)){
         
         rm(gene_snps, gene_chrom, gene_start, gene_end, gene_cn, 
            pass, clonality, cf.em, CnLR)
-      
-      
+
     })
   }
   rm(facets_qc, qc_5parameters)
+  gene_level_out = gene_level_out[!duplicated(gene_level_out), ]
 }
 
 
@@ -183,12 +196,12 @@ for(tumor_sample in 1:nrow(parameter_table)){
 ##-----------------
 ## manual inspection and re-run
 ##-----------------
-manual = multi_readSnpMatrix(filename = countMatrix_path, tumor_sample = 9)
+manual = multi_readSnpMatrix(filename = countMatrix_path, tumor_sample = 4)
 fit = facetsSuite::run_facets(read_counts = manual, 
                               cval = cval,
                               min_nhet = min_het,
                               seed = seed,
-                              genome = 'hg19', -0.35)
+                              genome = 'hg19')
 fit$dipLogR
 i = facetsSuite::cnlr_plot(fit, return_object = T)
 ii = facetsSuite::valor_plot(fit, return_object = T)
@@ -198,10 +211,9 @@ dev.off()
 i / ii/ iii/ iv
 j = facets_fit_qc(fit)
 j
-View(fit$segs)
 
 
-samples_dipLogR = c(0, -0.2350615, 0, 0, -0.1, -0.2, -0.06718821, -0.35)
+samples_dipLogR = c(-0.1367546341421, -0.1671917955004, 0.1888053, -0.130826537510)
 
 
 ##-----------------
@@ -272,84 +284,102 @@ for(tumor_sample in 1:nrow(parameter_table)){
                 'RB1',
                 'NF1',
                 'TP53')){
-    
-    #' Facets CnLR estimates
-    if(facets_qc$facets_qc & qc_5parameters){
-      CnLR = gene_level[which(gene_level$gene == gene), 'median_cnlr_seg']
-      CnLR = CnLR - dipLogR_original
-      cf.em = gene_level[which(gene_level$gene == gene), 'cf.em']
+    try({
+      #' Facets CnLR estimates
+      if(facets_qc$facets_qc & qc_5parameters){
+        if(gene %in% gene_level$gene){
+          CnLR = gene_level[which(gene_level$gene == gene), 'median_cnlr_seg']
+          CnLR = ifelse(is.nan(CnLR) | is.na(CnLR) | length(CnLR) == 0, NA, CnLR - dipLogR_original)
+          cf.em = gene_level[which(gene_level$gene == gene), 'cf.em']
+          cf.em = ifelse(is.nan(cf.em) | is.na(cf.em) | length(cf.em) == 0, NA, cf.em)
+          gene_cn = gene_level[which(gene_level$gene == gene), 'cn_state']
+          clonality = ifelse(cf.em >= (purity * 0.8), 'clonal', 'subclonal')
+          pass = gene_level[which(gene_level$gene == gene), 'filter']
+          
+        } else {
+          CnLR = NA
+          cf.em = NA
+          gene_cn = NA
+          clonality = NA
+          pass = NA
+        }
+        
+      } else if (facets_qc$facets_qc | qc_5parameters) {
+        if(gene %in% gene_level$gene){
+          gene_chrom = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'chrom'])
+          gene_start = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'start'])
+          gene_end = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'end'])
+          gene_snps = fit$snps[which(fit$snps$chrom == gene_chrom & 
+                                       fit$snps$maploc >= gene_start & 
+                                       fit$snps$maploc <= gene_end), 'cnlr']
+          gene_snps = as.numeric(gene_snps)
+          CnLR = ifelse(is.nan(gene_snps) | is.na(gene_snps) | length(gene_snps) == 0, NA, mean(gene_snps, na.rm = T))
+          cf.em = gene_level[which(gene_level$gene == gene), 'cf.em']
+          cf.em = ifelse(is.nan(cf.em) | is.na(cf.em) | length(cf.em) == 0, NA, cf.em)
+          gene_cn = gene_level[which(gene_level$gene == gene), 'cn_state']
+          clonality = ifelse(cf.em >= (purity * 0.8), 'clonal', 'subclonal')
+          pass = gene_level[which(gene_level$gene == gene), 'filter']
+          
+        } else {
+          CnLR = NA
+          cf.em = NA
+          gene_cn = NA
+          clonality = NA
+          pass = NA
+        }
+        
+      } else {
+        CnLR = NA
+        cf.em = NA
+        gene_cn = NA
+        clonality = NA
+        pass = NA
+      }
       
-    } else if (facets_qc$facets_qc | qc_5parameters) {
-      gene_chrom = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'chrom'])
-      gene_start = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'start'])
-      gene_end = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'end'])
-      gene_snps = fit$snps[which(fit$snps$chrom == gene_chrom & 
-                                   fit$snps$maploc >= gene_start & 
-                                   fit$snps$maploc <= gene_end), 'cnlr']
-      gene_snps = ifelse(length(gene_snps) == 0, NA, as.numeric(gene_snps))
-      print(gene_snps)
-      CnLR = ifelse(is.na(gene_snps), NA, mean(gene_snps))
-      print(CnLR)
-      cf.em = gene_level[which(gene_level$gene == gene), 'cf.em']
-    } else {
-      CnLR = NA
-      cf.em = NA
-    }
-    
-    #' assign clonality
-    clonality = ifelse(cf.em >= (purity * 0.8), 'clonal', 'subclonal')
-    gene_cn = gene_level[which(gene_level$gene == gene), 'cn_state']
-    pass = gene_level[which(gene_level$gene == gene), 'filter']
-    
-    #' t-test against baseline dipLogR
-    gene_chrom = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'chrom'])
-    gene_start = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'start'])
-    gene_end = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'end'])
-    
-    #' #' snps
-    #' gene_snps = fit$snps[which(fit$snps$chrom == gene_chrom & 
-    #'                              fit$snps$maploc >= gene_start & 
-    #'                              fit$snps$maploc <= gene_end), 'cnlr']
-    #' print(paste0(gene, ' ', length(gene_snps)))
-    #' gene_snps = as.numeric(gene_snps)
-    #' gene_snps = ifelse(length(gene_snps) == 0, NA, gene_snps)
-    
-    
-    # if(CnLR > 0){
-    #   one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "greater")$p.value
-    #   
-    # } else if (CnLR < 0) {
-    #   one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "less")$p.value
-    #   
-    # } else if (is.na(CnLR)) {
-    #   one_sided_test = NA
-    # }
-    
-    
-    #' prepare output
-    out = data.frame(gene = gene,
-                     QC_all = facets_qc$facets_qc,
-                     QC_minimum = qc_5parameters,
-                     copy_state = gene_cn,
-                     clonality = clonality,
-                     cf.em = cf.em,
-                     dipLogR_original = dipLogR_original,
-                     cnlr = CnLR,
-                     #one_sided_pvalue = one_sided_test,
-                     pass = pass, 
-                     group = tumor_sample)
-    
-    gene_level_out = rbind(gene_level_out, out)
-    facets_plots[[tumor_sample]] = all_plots
-    
-    rm(one_sided_test, gene_snps, gene_chrom, gene_start, gene_end, gene_cn, 
-       pass, clonality, cf.em, CnLR)
+      
+      #' t-test against baseline dipLogR
+      # gene_chrom = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'chrom'])
+      # gene_start = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'start'])
+      # gene_end = as.integer(genes_hg19[which(genes_hg19$gene == gene), 'end'])
+      # 
+      # if(!is.na(CnLR) & CnLR > 0){
+      #   one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "greater")$p.value
+      # } else if (!is.na(CnLR) & CnLR < 0) {
+      #   one_sided_test = t.test(gene_snps, mu = fit$dipLogR, alternative = "less")$p.value
+      # } else {
+      #   one_sided_test = NA
+      # }
+      
+      
+      #' prepare output
+      out = data.frame(gene = gene,
+                       QC_all = facets_qc$facets_qc,
+                       QC_minimum = qc_5parameters,
+                       copy_state = gene_cn,
+                       clonality = clonality,
+                       cf.em = cf.em,
+                       dipLogR_original = dipLogR_original,
+                       cnlr = CnLR,
+                       pass = pass, 
+                       group = tumor_sample)
+      
+      gene_level_out = rbind(gene_level_out, out)
+      facets_plots[[tumor_sample]] = all_plots
+      
+      rm(gene_snps, gene_chrom, gene_start, gene_end, gene_cn, 
+         pass, clonality, cf.em, CnLR)
+      
+    })
   }
+  
   rm(facets_qc, qc_5parameters)
   create_facets_output(facets_output = fit, 
                        directory = paste0(getwd(), '/', gsub("/.*$", "", countMatrix_path), '/'), 
                        sample_id = parameter_table$ID[tumor_sample])
 }
+
+
+
 
 rm(countMatrix, countMatrix_raw, gene_level, ii, iii, iv, out, i, filters, 
    tumor_sample, seed, samples_dipLogR, samples, purity, gene, cval, all_plots, facets_plots, fit)
