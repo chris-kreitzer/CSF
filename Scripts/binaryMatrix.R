@@ -90,6 +90,14 @@ write.table(x = all_out, file = '~/Documents/MSKCC/Subhi/CSF/CSF_test.txt', sep 
 
 
 
+##-----------------
+## copy number states;
+##-----------------
+
+load('C-0E4MEV/s_C_0E4MEV_S011_d06/s_C_0E4MEV_S011_d06.Rdata')
+
+
+
 
 
 
