@@ -3,7 +3,8 @@
 ## CSF alterations:
 ##---------------------------
 ##
-## 10/07/2022
+## start: 10/07/2022
+## update: 10/12/2022
 ## chris-kreitzer
 ## 
 
@@ -22,7 +23,77 @@ Loss = c("HETLOSS", "DOUBLE LOSS AFTER", "LOSS BEFORE", "CNLOH",
 Deletion = c("HOMDEL")
 Diploid = c("DIPLOID", "DIPLOID or CNLOH", "TETRAPLOID")
 Indeterminante = c('INDETERMINATE', NA)
-  
+
+
+
+copynumberstates = facetsSuite:::copy_number_states
+GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
+        'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
+        'TP53', 'KRAS', 'ATRX', 'FGF3', 'FGF4', 'FGF19')
+
+load(file = 'C-000499/P-0012463-T03-IM6/P-0012463-T03-IM6.Rdata')
+fit$cncf$cf = NULL
+fit$cncf$tcn = NULL
+fit$cncf$lcn = NULL
+fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
+fit$cncf$lcn[fit$cncf$tcn == 1] = 0
+fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
+
+# Generate output
+facets_out = list(
+  snps = out$jointseg,
+  segs = fit$cncf,
+  purity = as.numeric(fit$purity),
+  ploidy = as.numeric(fit$ploidy),
+  dipLogR = out$dipLogR,
+  alBalLogR = out$alBalLogR,
+  flags = out$flags,
+  em_flags = fit$emflags,
+  loglik = fit$loglik)
+
+gene_out = facetsSuite::gene_level_changes(facets_output = facets_out,
+                                           genome = 'hg19')
+gene_out = gene_out[which(gene_out$gene %in% GOI), ]
+
+wgd = facets_fit_qc(facets_output = facets_out)$wgd
+
+a = data.frame()
+for(i in 1:nrow(gene_out)){
+  if(wgd){
+    copyStates = copynumberstates[which(copynumberstates$wgd == T), ]
+    tcn = gene_out$tcn[i]
+    lcn = gene_out$lcn[i]
+    call = ifelse(is.na(lcn),
+                  copyStates$numeric_call[which(copyStates$tcn == tcn &
+                                                  is.na(copyStates$lcn))],
+                  copyStates$numeric_call[which(copyStates$tcn == tcn &
+                                                  copyStates$lcn == lcn)])
+    call = ifelse(length(call) != 0, call, NA)
+    gene = gene_out$gene[i]
+    gene_final = data.frame(gene = gene,
+                            call = call)
+  } else {
+    copyStates = copynumberstates[which(copynumberstates$wgd == F), ]
+    tcn = gene_out$tcn[i]
+    lcn = gene_out$lcn[i]
+    call = ifelse(is.na(lcn),
+                  copyStates$numeric_call[which(copyStates$tcn == tcn &
+                                                  is.na(copyStates$lcn))],
+                  copyStates$numeric_call[which(copyStates$tcn == tcn &
+                                                  copyStates$lcn == lcn)])
+    call = ifelse(length(call) != 0, call, NA)
+    gene = gene_out$gene[i]
+    gene_final = data.frame(gene = gene,
+                            call = call)
+  }
+  a = rbind(a, gene_final)
+}
+
+a
+
+
+
+
 all_out = data.frame()
 for(i in unique(folders)){
   files = list.files(path = paste0(i, '/'), full.names = T, recursive = T)
