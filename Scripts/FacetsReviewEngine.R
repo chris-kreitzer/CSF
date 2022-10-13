@@ -16,11 +16,11 @@ sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
 sample_pairing = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
 
 ## C-000597: countMatrix
-countMatrix_path = 'C-DW2V1V/C-DW2V1V__countMatrix.dat.gz'
+countMatrix_path = 'C-FM62EA/C-FM62EA__countMatrix.dat.gz'
 countMatrix_raw = read.csv(file = countMatrix_path, sep = ',')
 samples = grep(pattern = 'File*', colnames(countMatrix_raw))
 samples = (length(samples) - 4) / 4
-ID = 'C-DW2V1V'
+ID = 'C-FM62EA'
 snp_pileup[which(snp_pileup$Patient_ID == ID), ]
 
 ## Parameters: (exclusively purity runs); not interested in gene_level alterations
@@ -197,7 +197,7 @@ for(tumor_sample in 1:nrow(parameter_table)){
 ##-----------------
 ## manual inspection and re-run
 ##-----------------
-manual = multi_readSnpMatrix(filename = countMatrix_path, tumor_sample = 2)
+manual = multi_readSnpMatrix(filename = countMatrix_path, tumor_sample = 3)
 fit = facetsSuite::run_facets(read_counts = manual, 
                               cval = cval,
                               min_nhet = min_het,
@@ -214,7 +214,7 @@ j = facets_fit_qc(fit)
 j
 
 
-samples_dipLogR = c(-0.1653914955183, 0.14, -0.1738667118770)
+samples_dipLogR = c(0,0.047931 )
 
 
 ##-----------------
