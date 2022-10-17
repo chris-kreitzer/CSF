@@ -141,12 +141,44 @@ write.table(x = all_out, file = '~/Documents/MSKCC/Subhi/CSF/CSF_tmp.txt', sep =
 ##-----------------
 ## Format IGV:
 ##-----------------
+IGV_all = data.frame()
+for(i in unique(folders)){
+  try({
+    sub_dirs = list.dirs(path = i, full.names = T, recursive = F)
+    if(length(sub_dirs) == 0) next
+    else {
+      for(j in unique(sub_dirs)){
+        Rdata = list.files(pattern = '.Rdata$', path = paste0(j, '/'), full.names = T)
+        load(file = Rdata)
+        fit$cncf$cf = NULL
+        fit$cncf$tcn = NULL
+        fit$cncf$lcn = NULL
+        fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
+        fit$cncf$lcn[fit$cncf$tcn == 1] = 0
+        fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
+        
+        #' compile the whole FACETS output
+        name = basename(j)
+        print(name)
+        
+        facets_out = list(
+          snps = out$jointseg,
+          segs = fit$cncf,
+          purity = as.numeric(fit$purity),
+          ploidy = as.numeric(fit$ploidy),
+          dipLogR = out$dipLogR,
+          alBalLogR = out$alBalLogR,
+          flags = out$flags,
+          em_flags = fit$emflags,
+          loglik = fit$loglik)
+        
+        IGV = facetsSuite::format_igv_seg(facets_output = facets_out, sample_id = j, normalize = T)
+        IGV_all = rbind(IGV_all, IGV)
+      }
+    }
+  })
+}
 
-
-
-
-
-
-
-
+IGV_all$ID = basename(IGV_all$ID)
+write.table(x = IGV_all, file = '~/Desktop/IGV_tmp.seg', sep = '\t', row.names = F)        
 
