@@ -22,6 +22,7 @@ GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN',
         'TP53', 'KRAS', 'ATRX', 'FGF3', 'FGF4', 'FGF19')
 
 alterations = data.frame()
+IGV_all = data.frame()
 for(i in unique(folders)){
   try({
     sub_dirs = list.dirs(path = i, full.names = T, recursive = F)
@@ -38,6 +39,9 @@ for(i in unique(folders)){
         fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
         
         #' compile the whole FACETS output
+        name = basename(j)
+        print(name)
+        
         facets_out = list(
           snps = out$jointseg,
           segs = fit$cncf,
@@ -51,10 +55,10 @@ for(i in unique(folders)){
         
         gene_out = facetsSuite::gene_level_changes(facets_output = facets_out,
                                                    genome = 'hg19')
+        IGV = facetsSuite::format_igv_seg(facets_output = facets_out, sample_id = j, normalize = T)
         gene_out = gene_out[which(gene_out$gene %in% GOI), ]
         wgd = facets_fit_qc(facets_output = facets_out)$wgd
-        name = basename(j)
-        print(name)
+        
         
         ##-----------
         ## gene-level-out:
@@ -91,6 +95,7 @@ for(i in unique(folders)){
           alterations = rbind(alterations, gene_final)
         }
       }
+      IGV_all = rbind(IGV_all, IGV)
       rm(fit, out, name, facets_out, gene_out, gene_final)
     }
   })
@@ -98,9 +103,10 @@ for(i in unique(folders)){
 
 alterations = alterations[!is.na(alterations$gene), ]
 
+
 ##-----------------
 ## modify matrix
-alteration_matrix = setNames(data.frame(matrix(ncol = 20,
+alteration_matrix = setNames(data.frame(matrix(ncol = 21,
                                                nrow = 0)), 
                                  unique(alterations$gene))
 
@@ -128,15 +134,14 @@ all_out = t(all_out)
 colnames(all_out) = all_out[nrow(all_out), ]
 all_out = all_out[-nrow(all_out), ]
 
-write.table(x = all_out, file = '~/Documents/MSKCC/Subhi/CSF/CSF_test2.txt', sep = '\t')
+write.table(x = all_out, file = '~/Documents/MSKCC/Subhi/CSF/CSF_tmp.txt', sep = '\t')
 
 
 
 ##-----------------
-## copy number states;
+## Format IGV:
 ##-----------------
 
-load('C-0E4MEV/s_C_0E4MEV_S011_d06/s_C_0E4MEV_S011_d06.Rdata')
 
 
 
