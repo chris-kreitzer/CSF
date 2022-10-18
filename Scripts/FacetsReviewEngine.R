@@ -13,14 +13,14 @@ library(patchwork)
 source('~/Documents/GitHub/CSF/Scripts/UtilityFunctions.R')
 snp_pileup = read.csv('snp_files_out.txt', sep = '\t')
 sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
-sample_pairing = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
+sample_pairing = read.csv('Data/FINAL_samples/sample_pairing.txt', sep = '\t')
 
 ## C-000597: countMatrix
-countMatrix_path = 'C-Y8JT3D/C-Y8JT3D__countMatrix.dat.gz'
+countMatrix_path = 'C-002111/C-002111__countMatrix.dat.gz'
 countMatrix_raw = read.csv(file = countMatrix_path, sep = ',')
 samples = grep(pattern = 'File*', colnames(countMatrix_raw))
 samples = (length(samples) - 4) / 4
-ID = 'C-Y8JT3D'
+ID = 'C-002111'
 snp_pileup[which(snp_pileup$Patient_ID == ID), ]
 
 ## Parameters: (exclusively purity runs); not interested in gene_level alterations
@@ -214,7 +214,7 @@ j = facets_fit_qc(fit)
 j
 
 
-samples_dipLogR = c(0.312897415910742, 0.13, 0.18987405944120)
+samples_dipLogR = c(0.026387906334, -0.0396631890271, -0.09525870911451, -0.081808217951308, -0.0714913918199, -0.07302303412964, -0.10708505920580 )
 
 
 ##-----------------
