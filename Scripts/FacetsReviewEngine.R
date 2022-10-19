@@ -16,11 +16,11 @@ sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
 sample_pairing = read.csv('Data/FINAL_samples/sample_pairing.txt', sep = '\t')
 
 ## C-000597: countMatrix
-countMatrix_path = 'C-002111/C-002111__countMatrix.dat.gz'
+countMatrix_path = 'C-000624/C-000624__countMatrix_new.dat.gz'
 countMatrix_raw = read.csv(file = countMatrix_path, sep = ',')
 samples = grep(pattern = 'File*', colnames(countMatrix_raw))
 samples = (length(samples) - 4) / 4
-ID = 'C-002111'
+ID = 'C-000624'
 snp_pileup[which(snp_pileup$Patient_ID == ID), ]
 
 ## Parameters: (exclusively purity runs); not interested in gene_level alterations
@@ -202,7 +202,7 @@ fit = facetsSuite::run_facets(read_counts = manual,
                               cval = cval,
                               min_nhet = min_het,
                               seed = seed,
-                              genome = 'hg19', 0.13)
+                              genome = 'hg19')
 fit$dipLogR
 i = facetsSuite::cnlr_plot(fit, return_object = T)
 ii = facetsSuite::valor_plot(fit, return_object = T)
@@ -214,7 +214,7 @@ j = facets_fit_qc(fit)
 j
 
 
-samples_dipLogR = c(0.026387906334, -0.0396631890271, -0.09525870911451, -0.081808217951308, -0.0714913918199, -0.07302303412964, -0.10708505920580 )
+samples_dipLogR = c(-0.01, -0.0174096)
 
 
 ##-----------------
