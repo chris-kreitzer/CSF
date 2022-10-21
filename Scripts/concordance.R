@@ -62,11 +62,165 @@ mtext(text = paste0('p-value: ', round(t.test(alterations$purity[which(alteratio
 dev.off()
 
 
+##-----------------
+## more metrics:
+folders = list.files(path = '.')
+folders = folders[grepl(pattern = 'C-', x = folders)]
 
-a) numberr of SCNA
-b) purity
-c) FGA
-d) WGD
+all_out = data.frame()
+for(i in unique(folders)){
+  try({
+    sub_dirs = list.dirs(path = i, full.names = T, recursive = F)
+    if(length(sub_dirs) == 0) next
+    else {
+      for(j in unique(sub_dirs)){
+        Rdata = list.files(pattern = '.Rdata$', path = paste0(j, '/'), full.names = T)
+        load(file = Rdata)
+        fit$cncf$cf = NULL
+        fit$cncf$tcn = NULL
+        fit$cncf$lcn = NULL
+        fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
+        fit$cncf$lcn[fit$cncf$tcn == 1] = 0
+        fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
+        
+        #' compile the whole FACETS output
+        name = basename(j)
+        print(name)
+        
+        facets_out = list(
+          snps = out$jointseg,
+          segs = fit$cncf,
+          purity = as.numeric(fit$purity),
+          ploidy = as.numeric(fit$ploidy),
+          dipLogR = out$dipLogR,
+          alBalLogR = out$alBalLogR,
+          flags = out$flags,
+          em_flags = fit$emflags,
+          loglik = fit$loglik)
+        
+        if(name %in% Tumor_pass){
+          name = name
+          type = 'TUMOR'
+          ploidy = facets_fit_qc(facets_output = facets_out)$ploidy
+          wgd = facets_fit_qc(facets_output = facets_out)$wgd
+          fga = facets_fit_qc(facets_output = facets_out)$fga
+          n_amps = facets_fit_qc(facets_output = facets_out)$n_amps
+          n_homdels = facets_fit_qc(facets_output = facets_out)$n_homdels
+          n_loh = facets_fit_qc(facets_output = facets_out)$n_loh
+          out = data.frame(name = name,
+                           type = type,
+                           ploidy = ploidy,
+                           wgd = wgd,
+                           fga = fga,
+                           n_amps = n_amps,
+                           n_homdels = n_homdels,
+                           n_loh = n_loh)
+          
+        } else if (name %in% CSF_pass){
+          name = name
+          type = 'CSF'
+          ploidy = facets_fit_qc(facets_output = facets_out)$ploidy
+          wgd = facets_fit_qc(facets_output = facets_out)$wgd
+          fga = facets_fit_qc(facets_output = facets_out)$fga
+          n_amps = facets_fit_qc(facets_output = facets_out)$n_amps
+          n_homdels = facets_fit_qc(facets_output = facets_out)$n_homdels
+          n_loh = facets_fit_qc(facets_output = facets_out)$n_loh
+          out = data.frame(name = name,
+                           type = type,
+                           ploidy = ploidy,
+                           wgd = wgd,
+                           fga = fga,
+                           n_amps = n_amps,
+                           n_homdels = n_homdels,
+                           n_loh = n_loh)
+        } else next
+        
+        all_out = rbind(all_out, out)
+      }
+    }
+  })
+}
+        
+
+##-----------------
+## FGA:
+##-----------------
+#' purity comparison
+dev.off()
+par(mfrow = c(1,3))
+pdf(file = 'Figures/SCNA_comparison_AMP_DEL.pdf', width = 9, height = 6)
+pdf(file = 'Figures/FGA_all_comparison.pdf', width = 6, height = 6)
+boxplot(all_out$fga[which(all_out$type == 'TUMOR')],
+        all_out$fga[which(all_out$type == 'CSF')],
+        xaxt = 'n',
+        yaxt = 'n')
+axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
+axis(side = 2, at = c(0.1, 0.5, 1), labels = paste0(c(10, 50, 100), '%'), las = 2)
+box(lwd = 2)
+mtext(text = paste0('p-value: ', round(t.test(all_out$fga[which(all_out$type == 'TUMOR')],
+                                              all_out$fga[which(all_out$type == 'CSF')])$p.value, 3), ' (Welch Two Sample t-test)'), side = 3, line = 1.3 )
+mtext(text = 'FGA', side = 2, line = 2.8)
+
+dev.off()
+
+
+##-----------------
+## n_AMP
+##-----------------
+par(oma = c(3,3,3,3), omi = c(2,2,2,2))
+pdf(file = 'Figures/nAMP_all_comparison.pdf', width = 6, height = 6)
+boxplot(all_out$n_amps[which(all_out$type == 'TUMOR')],
+        all_out$n_amps[which(all_out$type == 'CSF')],
+        xaxt = 'n',
+        yaxt = 'n',
+        ylim = c(0, 10))
+axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
+axis(side = 2, at = c(0, 5, 10), labels = c(1, 5, 10), las = 2)
+box(lwd = 2)
+mtext(text = paste0('p-value: ', round(t.test(all_out$n_amps[which(all_out$type == 'TUMOR')],
+                                              all_out$n_amps[which(all_out$type == 'CSF')])$p.value, 3), ' (Welch Two Sample t-test)'), side = 3, line = 1.3 )
+mtext(text = '#AMPs', side = 2, line = 2.8)
+
+dev.off()
+
+##-----------------
+## n_homodeletions
+##-----------------
+par(oma = c(3,3,3,3), omi = c(2,2,2,2))
+pdf(file = 'Figures/nHomoDel_all_comparison.pdf', width = 6, height = 6)
+boxplot(all_out$n_homdels[which(all_out$type == 'TUMOR')],
+        all_out$n_homdels[which(all_out$type == 'CSF')],
+        xaxt = 'n',
+        yaxt = 'n',
+        ylim = c(0, 10))
+axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
+axis(side = 2, at = c(0, 5, 10), labels = c(1, 5, 10), las = 2)
+box(lwd = 2)
+mtext(text = paste0('p-value: ', round(t.test(all_out$n_homdels[which(all_out$type == 'TUMOR')],
+                                              all_out$n_homdels[which(all_out$type == 'CSF')])$p.value, 3), ' (Welch Two Sample t-test)'), side = 3, line = 1.3 )
+mtext(text = '#HomoDels', side = 2, line = 2.8)
+
+dev.off()
+
+
+##-----------------
+## n_LOH
+##-----------------
+par(oma = c(3,3,3,3), omi = c(2,2,2,2))
+pdf(file = 'Figures/nLOH_all_comparison.pdf', width = 6, height = 6)
+boxplot(all_out$n_loh[which(all_out$type == 'TUMOR')],
+        all_out$n_loh[which(all_out$type == 'CSF')],
+        xaxt = 'n',
+        yaxt = 'n',
+        ylim = c(0, 20))
+axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
+axis(side = 2, at = c(0, 5, 10, 15, 20), labels = c(1, 5, 10, 15, 20), las = 2)
+box(lwd = 2)
+mtext(text = paste0('p-value: ', round(t.test(all_out$n_loh[which(all_out$type == 'TUMOR')],
+                                              all_out$n_loh[which(all_out$type == 'CSF')])$p.value, 3), ' (Welch Two Sample t-test)'), side = 3, line = 1.3 )
+mtext(text = '#LOH', side = 2, line = 2.8)
+
+dev.off()
 
 
 
