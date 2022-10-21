@@ -16,18 +16,57 @@ colnames(sample_original)[1] = 'SampleID'
 
 pass = merge(sample_match, sample_original, by.x = 'sample', by.y = 'SampleID', all.x = T)
 pass = pass[!is.na(pass$TYPE) & !is.na(pass$ORDER), ]
+pass = pass[which(pass$fit == 'pass'), ]
 
 GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
         'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
         'TP53', 'KRAS', 'ATRX', 'FGF3', 'FGF4', 'FGF19')
 
-
+alterations = read.csv('Data/FINAL_samples/CSF_cohort_purity_nalts.txt', sep = '\t')
 
 
 ##-----------------
-## GENERAL overview: Tumor vs CSFs
+## GENERAL overview: 
+## Tumor vs CSFs
+##-----------------
+Tumor_pass = pass$sample[which(pass$TYPE == 'TUMOR')]
+CSF_pass = pass$sample[which(pass$TYPE == 'CSF')]
+
+## number of all SCNA
+dev.off()
+pdf(file = 'Figures/SCNA_all_comparison.pdf', width = 6, height = 6)
+boxplot(alterations$n_alts[which(alterations$sample %in% Tumor_pass)],
+        alterations$n_alts[which(alterations$sample %in% CSF_pass)],
+        xaxt = 'n',
+        yaxt = 'n')
+axis(side = 1, at = c(1,2), labels = c('TUMOR', 'CSF'))
+axis(side = 2, at = c(1, 5, 10 , 15, 20), labels = c(1, 5, 10 , 15, 20), las = 2)
+box(lwd = 2)
+mtext(text = paste0('p-value: ', round(t.test(alterations$n_alts[which(alterations$sample %in% Tumor_pass)],
+        alterations$n_alts[which(alterations$sample %in% CSF_pass)])$p.value, 3), ' (Welch Two Sample t-test)'), side = 3, line = 1.3 )
+
+dev.off()
+
+#' purity comparison
+pdf(file = 'Figures/purity_all_comparison.pdf', width = 6, height = 6)
+boxplot(alterations$purity[which(alterations$sample %in% Tumor_pass)],
+        alterations$purity[which(alterations$sample %in% CSF_pass)],
+        xaxt = 'n',
+        yaxt = 'n')
+axis(side = 1, at = c(1,2), labels = c('TUMOR', 'CSF'))
+axis(side = 2, at = c(0.1, 0.5, 1), labels = paste0(c(10, 50, 100), '%'), las = 2)
+box(lwd = 2)
+mtext(text = paste0('p-value: ', round(t.test(alterations$purity[which(alterations$sample %in% Tumor_pass)],
+                                              alterations$purity[which(alterations$sample %in% CSF_pass)])$p.value, 3), ' (Welch Two Sample t-test)'), side = 3, line = 1.3 )
+
+dev.off()
 
 
+
+a) numberr of SCNA
+b) purity
+c) FGA
+d) WGD
 
 
 
