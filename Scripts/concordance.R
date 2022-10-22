@@ -259,11 +259,6 @@ sample_original = sample_original[which(sample_original$PatientID %in% a$id), ]
 
 
 
-
-
-
-
-
 ##-----------------
 ## example: C-000499
 ## 1 solid tumor; 2 CSFs
@@ -381,6 +376,10 @@ View(gene_level)
 #' first rational:
 #' whenever I see a clonal event in solid tumor tissue
 #' I would expect to see the same alteration in CSF1,2,etc
+GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
+        'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
+        'TP53', 'KRAS', 'FGF3', 'FGF4', 'FGF19')
+
 all_out = data.frame()
 for(dirs in list.dirs(path = 'C-000499/', recursive = F)){
   id = basename(dirs)
@@ -439,7 +438,7 @@ for(i in 1:nrow(all_out)){
 
 
 first = all_out
-
+first$order = seq(1,3, 1)
 
 
 ##-----------------
@@ -500,11 +499,12 @@ for(i in 1:nrow(all_out)){
 }
 
 second = all_out
+second$order = seq(1,3,1)
 
 
 ##-----------------
 all_out = data.frame()
-for(dirs in list.dirs(path = 'C-001121/', recursive = F)){
+for(dirs in list.dirs(path = 'C-001393/', recursive = F)){
   id = basename(dirs)
   load(file = list.files(pattern = '.Rdata', path = dirs, full.names = T))
   fit$cncf$cf = NULL
@@ -543,7 +543,7 @@ for(dirs in list.dirs(path = 'C-001121/', recursive = F)){
     genes = paste(gene_level_clonal$gene, collapse = ',')
   }
   
-  out = data.frame(name = 'C-001121/',
+  out = data.frame(name = 'C-001393/',
                    id = id,
                    genes = genes,
                    n = n,
@@ -559,10 +559,14 @@ for(i in 1:nrow(all_out)){
   all_out$concordance[i] = concordance / all_out$n[1]
 }
 
+third = all_out
+third$order = seq(1, 2, 1)
+
 
 ##-----------------
+##-----------------
 all_out = data.frame()
-for(dirs in list.dirs(path = 'C-001327/', recursive = F)){
+for(dirs in list.dirs(path = 'C-38YEPA', recursive = F)){
   id = basename(dirs)
   load(file = list.files(pattern = '.Rdata', path = dirs, full.names = T))
   fit$cncf$cf = NULL
@@ -601,7 +605,7 @@ for(dirs in list.dirs(path = 'C-001327/', recursive = F)){
     genes = paste(gene_level_clonal$gene, collapse = ',')
   }
   
-  out = data.frame(name = 'C-001327/',
+  out = data.frame(name = 'C-38YEPA',
                    id = id,
                    genes = genes,
                    n = n,
@@ -617,6 +621,29 @@ for(i in 1:nrow(all_out)){
   all_out$concordance[i] = concordance / all_out$n[1]
 }
 
+fifth = all_out
+fifth$order = seq(1, 4, 1)
+
+
+
+##-----------------
+## Visualization:
+##-----------------
+all_out = rbind(first, second, third, fourth, fifth)
+all_out$order = factor(all_out$order, levels = c(4,3,2,1))
+
+ggplot(all_out, aes(x = name, y = order, fill = concordance)) +
+  geom_tile(color = "white",
+            lwd = 1.5,
+            linetype = 1) +
+  scale_fill_gradient(
+    low = "grey85",
+    high = "red",
+    space = "Lab",
+    na.value = "grey50", name = 'CNA') +
+  coord_fixed() +
+  scale_x_discrete(position = "top", expand = c(0, 0)) +
+  theme(panel.background = element_blank())
 
 
 
@@ -624,60 +651,6 @@ for(i in 1:nrow(all_out)){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-all_out$order = seq(1, 3, 1)
-test$order = seq(1, 4, 1)
-
-ggplot(u, aes(x = name, y = rev(order), fill = n)) +
-  geom_tile()
-
-test = data.frame(name = 'C-0er',
-                  id = c('a', 'b', 'c', 'd'),
-                  n = c(9, 8 , 7, 3),
-                  order = NA)
-
-u = rbind(all_out, test)
-
-
-
-gene_level_clonal = gene_level_goi[which(gene_level_goi$filter %in% c('RESCUE', 'PASS') &
-                                           gene_level_goi$cn_state != 'DIPLOID'), ]
-gene_level_clonal$clonality = ifelse(gene_level_clonal$cf.em >= fit$purity * 0.8, 'clonal', 'subclonal')
-gene_level_clonal = gene_level_clonal[which(gene_level_clonal$clonality == 'clonal'), ]
-
-
-
-
-
-con = merge(snps_solid, CSF1, by = 'maploc', all.x = T)
-CDKN2A = con[which(con$chrom.x == 9 & con$maploc >= 21967751 & con$maploc <= 21995300), ]
-
-plot(CDKN2A$cnlr.x, CDKN2A$cnlr.y)
-
-
-head(con)
-plot(con$cnlr.x, con$cnlr.y)
-cor.test(CDKN2A$cnlr.x, CDKN2A$cnlr.y, method = 'spearman')
-
-a = snps_solid[which(snps_solid$chrom == 9 & snps_solid$maploc >= 21967751 & snps_solid$maploc <= 21995300), ]
-a$seq = seq(1, nrow(a), 1)
-b = CSF1_snps[which(CSF1_snps$chrom == 9 & CSF1_snps$maploc >= 21967751 & CSF1_snps$maploc <= 21995300), ]
-b$seq = seq(1, nrow(b), 1)
-
-c = merge(a, b, by = 'seq', all.x = T)
-plot(c$cnlr.x, c$cnlr.y)
-cor.test(c$cnlr.x, c$cnlr.y)
 
 
 
@@ -744,30 +717,3 @@ for(i in unique(folders)){
 }
 
 
-
-n_alts_all = data.frame()
-for(i in 1:length(alterations)){
-  n = sum(alterations[, i] == 0, na.rm = T)
-  n.na = sum(is.na(alterations[, i]))
-  n_alts = 21 - sum(n, n.na)
-  out = data.frame(id = colnames(alterations)[i],
-                   n_alts = n_alts)
-  n_alts_all = rbind(n_alts_all, out)
-}
-
-n_alts_all$id = gsub(pattern = '\\.', replacement = '-', n_alts_all$id)
-
-str(purity_all)
-str(n_alts_all)
-pn = merge(purity_all, n_alts_all, by.x = 'id', by.y = 'id', all.x = T)
-head(pn)
-head(pn)
-View(pn)
-
-head(pn)
-dim(pass)
-
-pass = merge(pass, pn, by.x = 'sample', by.y = 'id', all.x = T)
-dim(pass)
-head(pass)
-write.table(x = pass, file = '~/Desktop/CSF_cohort_purity_nalts.txt', sep = '\t', row.names = F)
