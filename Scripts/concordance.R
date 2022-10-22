@@ -223,6 +223,45 @@ mtext(text = '#LOH', side = 2, line = 2.8)
 dev.off()
 
 
+##-----------------
+## concordance: 
+## clonal alterations: 
+## Tumor/CSFs PAIRS
+##-----------------
+sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
+sample_original = readxl::read_excel('Data/FINAL_samples/CSF_Lastest_07102022.xlsx')
+colnames(sample_original)[3] = 'SampleID'
+colnames(sample_original)[2] = 'PatientID'
+
+pass = merge(sample_match, sample_original, by.x = 'sample', by.y = 'SampleID', all.x = T)
+pass = pass[!is.na(pass$TYPE) & !is.na(pass$ORDER), ]
+pass = pass[which(pass$fit == 'pass'), ]
+
+GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
+        'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
+        'TP53', 'KRAS', 'ATRX', 'FGF3', 'FGF4', 'FGF19')
+
+a = data.frame()
+for(i in unique(sample_original$PatientID)){
+  if(length(sample_original$SampleID[which(sample_original$PatientID == i)]) > 1 &
+     sample_original$TYPE[which(sample_original$ORDER == 1)] == 'TUMOR'){
+    id = i
+    out = data.frame(id = id)
+  } else next
+  a = rbind(a, out)
+}
+
+sample_original = sample_original[which(sample_original$PatientID %in% a$id), ]
+
+
+
+
+
+
+
+
+
+
 
 
 ##-----------------
