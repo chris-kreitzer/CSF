@@ -650,13 +650,20 @@ ggplot(all_out, aes(x = name, y = order, fill = concordance)) +
 
 
 
-
-
-
-
-
-
 ##-----------------
+## Chromosome X issue:
+##-----------------
+load(file = 'C-006876/P-0006546-T02-IM5/P-0006546-T02-IM5.Rdata')
+tail(fit$cncf)
+
+readcounts = facets::readSnpMatrix(filename = 'C-001796/C-001796__countMatrix.dat.gz')
+reads.pre = facets::preProcSample(readcounts)
+read.pre.joint = reads.pre$jointseg[which(reads.pre$jointseg$chrom == 23), ]
+pre_het = read.pre.joint[which(read.pre.joint$het == 1), ]
+
+
+
+
 ## passed samples:
 ##-----------------
 clean()
