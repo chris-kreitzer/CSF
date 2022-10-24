@@ -664,6 +664,53 @@ pre_het = read.pre.joint[which(read.pre.joint$het == 1), ]
 
 
 
+
+##-----------------
+## EGFR amplifications:
+##-----------------
+clean()
+gc()
+.rs.restartR()
+setup(working.path = '~/Documents/MSKCC/Subhi/CSF/')
+folders = list.files(path = '.')
+folders = folders[grepl(pattern = 'C-', x = folders)]
+
+##' Definitions
+sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
+sample_original = readxl::read_excel('Data/FINAL_samples/CSF_Lastest_07102022.xlsx')
+sample_original = sample_original[, c('Sample ID', 'TYPE', 'ORDER')]
+colnames(sample_original)[1] = 'SampleID'
+
+pass = merge(sample_match, sample_original, by.x = 'sample', by.y = 'SampleID', all.x = T)
+pass = pass[!is.na(pass$TYPE) & !is.na(pass$ORDER), ]
+pass = pass[which(pass$fit == 'pass'), ]
+pass$ordertype = paste(pass$ORDER, pass$TYPE, sep = ',')
+
+##-----------------
+firstTumor = pass[grepl(pattern = '1,TUMOR', pass$ordertype), ]
+secondCSF = pass[grepl(pattern = '2,CSF', pass$ordertype), ]
+
+all_out = rbind(firstTumor, secondCSF)
+pairs_keep = names(table(all_out$PATIENT_ID))[which(table(all_out$PATIENT_ID) == 2)]
+all_out = all_out[which(all_out$PATIENT_ID %in% pairs_keep), ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## passed samples:
 ##-----------------
 clean()
