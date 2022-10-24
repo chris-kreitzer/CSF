@@ -695,22 +695,83 @@ pairs_keep = names(table(all_out$PATIENT_ID))[which(table(all_out$PATIENT_ID) ==
 all_out = all_out[which(all_out$PATIENT_ID %in% pairs_keep), ]
 
 
+pair_folders = folders[which(folders %in% all_out$PATIENT_ID)]
+
+EGFR_all = data.frame()
+for(i in unique(pair_folders)){
+  try({
+    files = all_out$sample[which(all_out$PATIENT_ID == i)]
+    sub_dirs = c(paste0('/Users/chriskreitzer/Documents/MSKCC/Subhi/CSF/', i, '/', files, '/'))
+    #sub_dirs = list.dirs(path = i, full.names = T, recursive = F)
+    
+    if(length(sub_dirs) == 0) next
+    else {
+      for(j in unique(sub_dirs)){
+        Rdata = list.files(pattern = '.Rdata$', path = paste0(j, '/'), full.names = T)
+        load(file = Rdata)
+        fit$cncf$cf = NULL
+        fit$cncf$tcn = NULL
+        fit$cncf$lcn = NULL
+        fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
+        fit$cncf$lcn[fit$cncf$tcn == 1] = 0
+        fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
+        
+        #' compile the whole FACETS output
+        name = basename(j)
+        print(name)
+        
+        facets_out = list(
+          snps = out$jointseg,
+          segs = fit$cncf,
+          purity = as.numeric(fit$purity),
+          ploidy = as.numeric(fit$ploidy),
+          dipLogR = out$dipLogR,
+          alBalLogR = out$alBalLogR,
+          flags = out$flags,
+          em_flags = fit$emflags,
+          loglik = fit$loglik)
+        
+        gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
+        EGFR = gene_level[which(gene_level$gene == 'EGFR'), 'median_cnlr_seg']
+        EGFR = ifelse(is.na(EGFR), NA, EGFR)
+        out = data.frame(id = name,
+                         EGFR = EGFR)
+        EGFR_all = rbind(EGFR_all, out)
+      }
+    }
+  })
+}
+
+dim(all_out)
+dim(EGFR_all)
+EGFR_all = merge(EGFR_all, all_out, by.x = 'id', by.y = 'sample', all.x = T)
+
+EGFR_plot = data.frame()
+for(i in unique(EGFR_all$PATIENT_ID)){
+  tumor = EGFR_all$EGFR[which(EGFR_all$PATIENT_ID == i & EGFR_all$TYPE == 'TUMOR')]
+  csf = EGFR_all$EGFR[which(EGFR_all$PATIENT_ID == i & EGFR_all$TYPE == 'CSF')]
+  out = data.frame(id = i,
+                   tumor = tumor,
+                   csf = csf)
+  EGFR_plot = rbind(EGFR_plot, out)
+}
+
+ggplot(EGFR_plot, aes(x = tumor, y = csf))+
+  geom_jitter() +
+  geom_abline(slope = 1, intercept = 0, linetype = 'dashed') +
+  scale_y_continuous(limits = c(0, 5)) +
+  scale_x_continuous(limits = c(0, 5)) +
+  theme(aspect.ratio = 1,
+        panel.border = element_rect(fill = NA)) +
+  labs(x = 'Tumor [CnLR]', y = '1.CSF [CnLR]', title = 'EGFR') +
+  annotate(geom = 'text', x = 1.1, y = 4.5, label = 'spearman rho: 0.65')
 
 
+EGFR_plot$id[which(EGFR_plot$tumor > 2.5 & EGFR_plot$csf < 1)]
+purity = read.csv('Data/FINAL_samples/CSF_cohort_purity_nalts.txt', sep = '\t')
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+View(purity)
 ## passed samples:
 ##-----------------
 clean()
