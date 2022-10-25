@@ -646,58 +646,10 @@ ggplot(all_out, aes(x = name, y = order, fill = concordance)) +
   theme(panel.background = element_blank())
 
 
-
-
-
-
 ##-----------------
-## Chromosome X issue:
+## all genes of interest:
 ##-----------------
-load(file = 'C-006876/P-0006546-T02-IM5/P-0006546-T02-IM5.Rdata')
-tail(fit$cncf)
-
-readcounts = facets::readSnpMatrix(filename = 'C-001796/C-001796__countMatrix.dat.gz')
-reads.pre = facets::preProcSample(readcounts)
-read.pre.joint = reads.pre$jointseg[which(reads.pre$jointseg$chrom == 23), ]
-pre_het = read.pre.joint[which(read.pre.joint$het == 1), ]
-
-
-
-
-
-##-----------------
-## EGFR amplifications:
-##-----------------
-clean()
-gc()
-.rs.restartR()
-setup(working.path = '~/Documents/MSKCC/Subhi/CSF/')
-folders = list.files(path = '.')
-folders = folders[grepl(pattern = 'C-', x = folders)]
-
-##' Definitions
-sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
-sample_original = readxl::read_excel('Data/FINAL_samples/CSF_Lastest_07102022.xlsx')
-sample_original = sample_original[, c('Sample ID', 'TYPE', 'ORDER')]
-colnames(sample_original)[1] = 'SampleID'
-
-pass = merge(sample_match, sample_original, by.x = 'sample', by.y = 'SampleID', all.x = T)
-pass = pass[!is.na(pass$TYPE) & !is.na(pass$ORDER), ]
-pass = pass[which(pass$fit == 'pass'), ]
-pass$ordertype = paste(pass$ORDER, pass$TYPE, sep = ',')
-
-##-----------------
-firstTumor = pass[grepl(pattern = '1,TUMOR', pass$ordertype), ]
-secondCSF = pass[grepl(pattern = '2,CSF', pass$ordertype), ]
-
-all_out = rbind(firstTumor, secondCSF)
-pairs_keep = names(table(all_out$PATIENT_ID))[which(table(all_out$PATIENT_ID) == 2)]
-all_out = all_out[which(all_out$PATIENT_ID %in% pairs_keep), ]
-
-
-pair_folders = folders[which(folders %in% all_out$PATIENT_ID)]
-
-EGFR_all = data.frame()
+Alterations_all = data.frame()
 for(i in unique(pair_folders)){
   try({
     files = all_out$sample[which(all_out$PATIENT_ID == i)]
@@ -732,103 +684,74 @@ for(i in unique(pair_folders)){
           loglik = fit$loglik)
         
         gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
-        EGFR = gene_level[which(gene_level$gene == 'EGFR'), 'median_cnlr_seg']
-        EGFR = ifelse(is.na(EGFR), NA, EGFR)
-        out = data.frame(id = name,
-                         EGFR = EGFR)
-        EGFR_all = rbind(EGFR_all, out)
-      }
-    }
-  })
-}
-
-dim(all_out)
-dim(EGFR_all)
-EGFR_all = merge(EGFR_all, all_out, by.x = 'id', by.y = 'sample', all.x = T)
-
-EGFR_plot = data.frame()
-for(i in unique(EGFR_all$PATIENT_ID)){
-  tumor = EGFR_all$EGFR[which(EGFR_all$PATIENT_ID == i & EGFR_all$TYPE == 'TUMOR')]
-  csf = EGFR_all$EGFR[which(EGFR_all$PATIENT_ID == i & EGFR_all$TYPE == 'CSF')]
-  out = data.frame(id = i,
-                   tumor = tumor,
-                   csf = csf)
-  EGFR_plot = rbind(EGFR_plot, out)
-}
-
-ggplot(EGFR_plot, aes(x = tumor, y = csf))+
-  geom_jitter() +
-  geom_abline(slope = 1, intercept = 0, linetype = 'dashed') +
-  scale_y_continuous(limits = c(0, 5)) +
-  scale_x_continuous(limits = c(0, 5)) +
-  theme(aspect.ratio = 1,
-        panel.border = element_rect(fill = NA)) +
-  labs(x = 'Tumor [CnLR]', y = '1.CSF [CnLR]', title = 'EGFR') +
-  annotate(geom = 'text', x = 1.1, y = 4.5, label = 'spearman rho: 0.65')
-
-
-EGFR_plot$id[which(EGFR_plot$tumor > 2.5 & EGFR_plot$csf < 1)]
-purity = read.csv('Data/FINAL_samples/CSF_cohort_purity_nalts.txt', sep = '\t')
-
-
-View(purity)
-## passed samples:
-##-----------------
-clean()
-gc()
-.rs.restartR()
-setup(working.path = '~/Documents/MSKCC/Subhi/CSF/')
-folders = list.files(path = '.')
-folders = folders[grepl(pattern = 'C-', x = folders)]
-
-##' Definitions
-copynumberstates = facetsSuite:::copy_number_states
-GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
-        'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
-        'TP53', 'KRAS', 'ATRX', 'FGF3', 'FGF4', 'FGF19')
-
-
-
-samples_pass = pass$sample[which(pass$fit %in% 'pass')]
-
-purity_all = data.frame()
-for(i in unique(folders)){
-  try({
-    sub_dirs = list.dirs(path = i, full.names = T, recursive = F)
-    if(length(sub_dirs) == 0) next
-    else {
-      for(j in unique(sub_dirs)){
-        Rdata = list.files(pattern = '.Rdata$', path = paste0(j, '/'), full.names = T)
-        load(file = Rdata)
-        fit$cncf$cf = NULL
-        fit$cncf$tcn = NULL
-        fit$cncf$lcn = NULL
-        fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
-        fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-        fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
         
-        #' compile the whole FACETS output
-        name = basename(j)
-        print(name)
-        
-        facets_out = list(
-          snps = out$jointseg,
-          segs = fit$cncf,
-          purity = as.numeric(fit$purity),
-          ploidy = as.numeric(fit$ploidy),
-          dipLogR = out$dipLogR,
-          alBalLogR = out$alBalLogR,
-          flags = out$flags,
-          em_flags = fit$emflags,
-          loglik = fit$loglik)
-        
-        purity = fit$purity
-        out = data.frame(id = name,
-                         purity = purity)
-        purity_all = rbind(purity_all, out)
+        for(gene in GOI){
+          print(gene)
+          if(gene %in% unique(gene_level$gene)){
+            gene_cnlr = gene_level[which(gene_level$gene == gene), 'median_cnlr_seg']
+            gene_cnlr = ifelse(is.na(gene_cnlr), NA, gene_cnlr)
+            out = data.frame(id = name,
+                             gene = gene,
+                             gene_cnlr = gene_cnlr)
+          } else next
+          Alterations_all = rbind(Alterations_all, out)
+        }
       }
     }
   })
 }
 
 
+## modify output:
+gene_list = list()
+for(i in unique(Alterations_all$gene)){
+  gene_sub = Alterations_all[which(Alterations_all$gene == i), ]
+  gene_merge = merge(gene_sub, all_out, by.x = 'id', by.y = 'sample', all.x = T)
+  gene_plot = data.frame()
+  for(j in unique(gene_merge$PATIENT_ID)){
+    tumor = gene_merge$gene_cnlr[which(gene_merge$PATIENT_ID == j & gene_merge$TYPE == 'TUMOR')]
+    csf = gene_merge$gene_cnlr[which(gene_merge$PATIENT_ID == j & gene_merge$TYPE == 'CSF')]
+    out = data.frame(id = j,
+                     tumor = tumor,
+                     csf = csf)
+    gene_plot = rbind(gene_plot, out)
+    
+  }
+  gene_list[[i]] = gene_plot
+}
+
+#' vis
+plot_list = list()
+for(i in seq_along(gene_list)){
+  if(names(gene_list)[i] %in% c('CDKN2A', 'CDKN2B')){
+    plot = ggplot(gene_list[[i]], aes(x = tumor, y = csf)) +
+      geom_jitter() +
+      geom_abline(slope = 1, intercept = 0, linetype = 'dashed') +
+      scale_y_continuous(limits = c(-5, 1)) +
+      scale_x_continuous(limits = c(-5, 1)) +
+      theme(aspect.ratio = 1,
+            panel.border = element_rect(fill = NA)) +
+      labs(x = 'Tumor [CnLR]', y = '1.CSF [CnLR]', title = names(gene_list)[i]) +
+      annotate(geom = 'text', x = -4, y = 0.7, 
+               label = paste0('spearmans rho: ', 
+                              round(cor.test(gene_list[[i]]$tumor, gene_list[[i]]$csf, method = 'spearman')$estimate[[1]], 3))) 
+  } else {
+    plot = ggplot(gene_list[[i]], aes(x = tumor, y = csf)) +
+      geom_jitter() +
+      geom_abline(slope = 1, intercept = 0, linetype = 'dashed') +
+      scale_y_continuous(limits = c(-1, 4.5)) +
+      scale_x_continuous(limits = c(-1, 4.5)) +
+      theme(aspect.ratio = 1,
+            panel.border = element_rect(fill = NA)) +
+      labs(x = 'Tumor [CnLR]', y = '1.CSF [CnLR]', title = names(gene_list)[i]) +
+      annotate(geom = 'text', x = 1.1, y = 4.1, 
+               label = paste0('spearmans rho: ', 
+                              round(cor.test(gene_list[[i]]$tumor, gene_list[[i]]$csf, method = 'spearman')$estimate[[1]], 3))) 
+  }
+  
+  plot_list[[i]] = plot
+  
+}
+
+library(cowplot)
+plot_grid(plotlist = plot_list)
