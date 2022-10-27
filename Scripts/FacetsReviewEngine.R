@@ -16,11 +16,11 @@ sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
 sample_pairing = read.csv('Data/FINAL_samples/sample_pairing.txt', sep = '\t')
 
 ## C-000597: countMatrix
-countMatrix_path = 'C-UTH1CX/C-UTH1CX__countMatrixNew.dat.gz'
+countMatrix_path = 'C-Y8JT3D/C-Y8JT3D__countMatrixNew.dat.gz'
 countMatrix_raw = read.csv(file = countMatrix_path, sep = ',')
 samples = grep(pattern = 'File*', colnames(countMatrix_raw))
 samples = (length(samples) - 4) / 4
-ID = 'C-UTH1CX'
+ID = 'C-Y8JT3D'
 snp_pileup[which(snp_pileup$Patient_ID == ID), ]
 
 ## Parameters: (exclusively purity runs); not interested in gene_level alterations
@@ -219,7 +219,7 @@ j = facets_fit_qc(fit)
 j
 
 
-samples_dipLogR = c(0.04488871)
+samples_dipLogR = c(0.07104743)
 
 
 ##-----------------
