@@ -5,8 +5,9 @@
 ##
 ## start: 10/07/2022
 ## update: 10/12/2022
+## update: 10/27/2022
 ## chris-kreitzer
-## 
+
 
 clean()
 gc()
@@ -20,6 +21,10 @@ copynumberstates = facetsSuite:::copy_number_states
 GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
         'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
         'TP53', 'KRAS', 'ATRX', 'FGF3', 'FGF4', 'FGF19')
+gene_filter_states = c('suppress_segment_too_large', 
+                       'suppress_likely_unfocal_large_gain', 
+                       'suppress_large_homdel')
+
 
 alterations = data.frame()
 IGV_all = data.frame()
@@ -103,6 +108,175 @@ for(i in unique(folders)){
 
 alterations = alterations[!is.na(alterations$gene), ]
 
+
+##-----------------
+## work on ATRX:
+##-----------------
+folders = list.files(path = '.')
+folders = folders[grepl(pattern = 'C-', x = folders)]
+sample_clinical = readxl::read_excel('Data/FINAL_samples/CSF_Lastest_07102022.xlsx')
+sample_clinical_short = sample_clinical[, c('Patient ID', 'Sample ID', 'Sex')]
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-09T7CL')] = 'M'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-001615')] = 'M'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-4173R4')] = 'F'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-56D79J')] = 'M'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-5XD5TE')] = 'M'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-65DNPK')] = 'M'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-6JMECR')] = 'M'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-9E8T53')] = 'M'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-A32F9N')] = 'M'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-NRMAAD')] = 'M'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-UMDEWL')] = 'M'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-DVCFA2')] = 'F'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-D2P3RM')] = 'M'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-PTK9RU')] = 'M'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-NC3N8D')] = 'F'
+sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-D7MUWF')] = 'M'
+colnames(sample_clinical_short) = c('PatientID', 'SampleID', 'Sex')
+
+all_out = data.frame()
+for(i in unique(folders)){
+  try({
+    sub_dirs = list.dirs(path = i, full.names = T, recursive = F)
+    if(length(sub_dirs) == 0) next
+    else {
+      for(j in unique(sub_dirs)){
+        Rdata = list.files(pattern = '.Rdata$', path = paste0(j, '/'), full.names = T)
+        load(file = Rdata)
+        fit$cncf$cf = NULL
+        fit$cncf$tcn = NULL
+        fit$cncf$lcn = NULL
+        fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
+        fit$cncf$lcn[fit$cncf$tcn == 1] = 0
+        fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
+        
+        #' compile the whole FACETS output
+        name = basename(j)
+        print(name)
+        
+        facets_out = list(
+          snps = out$jointseg,
+          segs = fit$cncf,
+          purity = as.numeric(fit$purity),
+          ploidy = as.numeric(fit$ploidy),
+          dipLogR = out$dipLogR,
+          alBalLogR = out$alBalLogR,
+          flags = out$flags,
+          em_flags = fit$emflags,
+          loglik = fit$loglik)
+        
+        gene_out = facetsSuite::gene_level_changes(facets_output = facets_out,
+                                                   genome = 'hg19')
+        ATRX = gene_out[which(gene_out$gene == 'ATRX'), ]
+        wgd = facets_fit_qc(facets_output = facets_out)$wgd
+        
+        
+        ##-----------
+        if(wgd & sample_clinical_short$Sex[which(sample_clinical_short$SampleID == name)] == 'F'){
+          copyStates = copynumberstates[which(copynumberstates$wgd == T), ]
+          tcn = ATRX$tcn.em
+          lcn = ATRX$lcn.em
+          filter = ATRX$filter
+          call = ifelse(filter %in% gene_filter_states, NA,
+                        ifelse(!filter %in% gene_filter_states & is.na(lcn), 
+                               copyStates$numeric_call[which(copyStates$tcn == tcn &
+                                                               is.na(copyStates$lcn))],
+                               ifelse(!filter %in% gene_filter_states & !is.na(lcn),
+                                      copyStates$numeric_call[which(copyStates$tcn == tcn &
+                                                                      copyStates$lcn == lcn)], NA)))
+          out = data.frame(id = name,
+                           gene = 'ATRX', 
+                           call = call)
+        } else if (!wgd & sample_clinical_short$Sex[which(sample_clinical_short$SampleID == name)] == 'F'){
+          copyStates = copynumberstates[which(copynumberstates$wgd == F), ]
+          tcn = ATRX$tcn.em
+          lcn = ATRX$lcn.em
+          filter = ATRX$filter
+          call = ifelse(filter %in% gene_filter_states, NA,
+                        ifelse(!filter %in% gene_filter_states & is.na(lcn), 
+                               copyStates$numeric_call[which(copyStates$tcn == tcn &
+                                                               is.na(copyStates$lcn))],
+                               ifelse(!filter %in% gene_filter_states & !is.na(lcn),
+                                      copyStates$numeric_call[which(copyStates$tcn == tcn &
+                                                                      copyStates$lcn == lcn)], NA)))
+          out = data.frame(id = name,
+                           gene = 'ATRX', 
+                           call = call)
+          
+        } else if (wgd & sample_clinical_short$Sex[which(sample_clinical_short$SampleID == name)] == 'M'){
+          tcn = ATRX$tcn.em
+          lcn = ATRX$lcn.em
+          filter = ATRX$filter
+          call = ifelse(filter %in% gene_filter_states, NA,
+                        ifelse(!filter %in% gene_filter_states & lcn == 0 & tcn == 1, -1,
+                               ifelse(!filter %in% gene_filter_states & is.na(lcn) & tcn == 1, -1,
+                                      ifelse(!filter %in% gene_filter_states & lcn == 0 & tcn > 1, 0,
+                                             ifelse(!filter %in% gene_filter_states & is.na(lcn) & tcn > 1, 0,
+                                                    ifelse(!filter %in% gene_filter_states & lcn == 0 & tcn == 0, -1, 
+                                                           ifelse(!filter %in% gene_filter_states & is.na(lcn) & tcn > 2, 1, NA)))))))
+                                             
+                               
+                               
+          out = data.frame(id = name,
+                           gene = 'ATRX', 
+                           call = call)
+          
+        } else if (!wgd & sample_clinical_short$Sex[which(sample_clinical_short$SampleID == name)] == 'M'){
+          tcn = ATRX$tcn.em
+          lcn = ATRX$lcn.em
+          filter = ATRX$filter
+          call = ifelse(filter %in% gene_filter_states, NA,
+                        ifelse(!filter %in% gene_filter_states & is.na(lcn) & tcn > 1, 1,
+                               ifelse(!filter %in% gene_filter_states & is.na(lcn) & tcn == 1, 0,
+                                      ifelse(!filter %in% gene_filter_states & lcn == 0 & tcn > 1, 1,
+                                             ifelse(!filter %in% gene_filter_states & lcn == 0 & tcn == 1, 0,
+                                                    ifelse(!filter %in% gene_filter_states & is.na(lcn) & tcn == 0, -1,
+                                                           ifelse(!filter %in% gene_filter_states & lcn == 0 & tcn == 0, -1, NA)))))))
+                                             
+          
+          out = data.frame(id = name,
+                           gene = 'ATRX', 
+                           call = call)
+                               
+        }
+        
+        all_out = rbind(all_out, out)
+      }
+    }
+  })
+}
+
+C-9XPJL0/ P-0036583-T01-IM6
+C-4L02UJ/s_C_4L02UJ_L001_d
+C-006876/P-0006546-T01-IM5
+
+load('C-006876/P-0006546-T01-IM5/P-0006546-T01-IM5.Rdata')
+fit$cncf$cf = NULL
+fit$cncf$tcn = NULL
+fit$cncf$lcn = NULL
+fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
+fit$cncf$lcn[fit$cncf$tcn == 1] = 0
+fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
+
+
+facets_out = list(
+  snps = out$jointseg,
+  segs = fit$cncf,
+  purity = as.numeric(fit$purity),
+  ploidy = as.numeric(fit$ploidy),
+  dipLogR = out$dipLogR,
+  alBalLogR = out$alBalLogR,
+  flags = out$flags,
+  em_flags = fit$emflags,
+  loglik = fit$loglik)
+
+gene_out = facetsSuite::gene_level_changes(facets_output = facets_out,
+                                           genome = 'hg19')
+ATRX = gene_out[which(gene_out$gene == 'ATRX'), ]
+        
+        
+        
+        
 
 ##-----------------
 ## modify matrix
