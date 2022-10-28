@@ -253,20 +253,19 @@ for(i in unique(folders)){
 ## MERGE alterations (general)
 ## and ATRX
 ##-----------------
+alterations = alterations[which(alterations$gene != 'ATRX'), ]
+alterations_all = rbind(alterations, all_out)
 
-
-
-##-----------------
 ## modify matrix
 alteration_matrix = setNames(data.frame(matrix(ncol = 21,
                                                nrow = 0)), 
-                                 unique(alterations$gene))
+                                 unique(alterations_all$gene))
 
 all_out = data.frame()
 counter = 1
 
-for(id in unique(alterations$id)){
-  data.mut.sub = alterations[which(alterations$id == id), ]
+for(id in unique(alterations_all$id)){
+  data.mut.sub = alterations_all[which(alterations_all$id == id), ]
   if(nrow(data.mut.sub) != 0){
     for(j in unique(data.mut.sub$gene)){
       if(j %in% colnames(alteration_matrix)){
@@ -278,7 +277,6 @@ for(id in unique(alterations$id)){
   alteration_matrix[counter, 'Sample.ID'] = id
   counter = counter + 1
   all_out = rbind(all_out, alteration_matrix)
-  
 }
   
 all_out = all_out[!duplicated(all_out), ]
@@ -286,7 +284,7 @@ all_out = t(all_out)
 colnames(all_out) = all_out[nrow(all_out), ]
 all_out = all_out[-nrow(all_out), ]
 
-write.table(x = all_out, file = '~/Documents/MSKCC/Subhi/CSF/CSF_tmp.txt', sep = '\t')
+write.table(x = all_out, file = '~/Documents/MSKCC/Subhi/CSF/Data/FINAL_samples/CSF_binary_all.txt', sep = '\t')
 
 
 
@@ -332,5 +330,28 @@ for(i in unique(folders)){
 }
 
 IGV_all$ID = basename(IGV_all$ID)
-write.table(x = IGV_all, file = '~/Desktop/IGV_tmp.seg', sep = '\t', row.names = F)        
+write.table(x = IGV_all, file = '~/Documents/MSKCC/Subhi/CSF/Data/FINAL_samples/IGV_all.seg', sep = '\t', row.names = F)        
+
+
+
+##-----------------
+## Filter for QC true
+## samples
+##-----------------
+sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
+samples_pass = sample_match[which(sample_match$fit == 'pass'), ]
+samples_pass = samples_pass[!grepl(pattern = 'N01', samples_pass$sample), ]
+alterations_pass = all_out[,which(colnames(all_out) %in% samples_pass$sample)]
+IGV_pass = IGV_all[which(IGV_all$ID %in% samples_pass$sample), ]
+
+write.table(alterations_pass, file = 'Data/FINAL_samples/CSF_binary_QC_true.txt', sep = '\t')
+write.table(IGV_pass, file = 'Data/FINAL_samples/IGV_QC_true.seg', sep = '\t', row.names = F)
+
+
+
+
+
+
+
+
 
