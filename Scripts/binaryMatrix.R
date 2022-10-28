@@ -72,11 +72,12 @@ for(i in unique(folders)){
             copyStates = copynumberstates[which(copynumberstates$wgd == T), ]
             tcn = gene_out$tcn[k]
             lcn = gene_out$lcn[k]
-            call = ifelse(is.na(lcn),
-                          copyStates$numeric_call[which(copyStates$tcn == tcn &
+            filter = gene_out$filter[k]
+            call = ifelse(filter %in% gene_filter_states, NA,
+                          ifelse(is.na(lcn), copyStates$numeric_call[which(copyStates$tcn == tcn &
                                                           is.na(copyStates$lcn))],
-                          copyStates$numeric_call[which(copyStates$tcn == tcn &
-                                                          copyStates$lcn == lcn)])
+                                 copyStates$numeric_call[which(copyStates$tcn == tcn &
+                                                                 copyStates$lcn == lcn)]))
             call = ifelse(length(call) != 0, call, NA)
             gene = gene_out$gene[k]
             gene_final = data.frame(id = name,
@@ -86,11 +87,12 @@ for(i in unique(folders)){
             copyStates = copynumberstates[which(copynumberstates$wgd == F), ]
             tcn = gene_out$tcn[k]
             lcn = gene_out$lcn[k]
-            call = ifelse(is.na(lcn),
-                          copyStates$numeric_call[which(copyStates$tcn == tcn &
-                                                          is.na(copyStates$lcn))],
-                          copyStates$numeric_call[which(copyStates$tcn == tcn &
-                                                          copyStates$lcn == lcn)])
+            filter = gene_out$filter[k]
+            call = ifelse(filter %in% gene_filter_states, NA,
+                          ifelse(is.na(lcn), copyStates$numeric_call[which(copyStates$tcn == tcn &
+                                                                             is.na(copyStates$lcn))],
+                                 copyStates$numeric_call[which(copyStates$tcn == tcn &
+                                                                 copyStates$lcn == lcn)]))
             call = ifelse(length(call) != 0, call, NA)
             gene = gene_out$gene[k]
             gene_final = data.frame(id = name,
@@ -106,7 +108,6 @@ for(i in unique(folders)){
   })
 }
 
-alterations = alterations[!is.na(alterations$gene), ]
 
 
 ##-----------------
@@ -187,6 +188,7 @@ for(i in unique(folders)){
           out = data.frame(id = name,
                            gene = 'ATRX', 
                            call = call)
+          
         } else if (!wgd & sample_clinical_short$Sex[which(sample_clinical_short$SampleID == name)] == 'F'){
           copyStates = copynumberstates[which(copynumberstates$wgd == F), ]
           tcn = ATRX$tcn.em
@@ -246,37 +248,13 @@ for(i in unique(folders)){
   })
 }
 
-C-9XPJL0/ P-0036583-T01-IM6
-C-4L02UJ/s_C_4L02UJ_L001_d
-C-006876/P-0006546-T01-IM5
 
-load('C-006876/P-0006546-T01-IM5/P-0006546-T01-IM5.Rdata')
-fit$cncf$cf = NULL
-fit$cncf$tcn = NULL
-fit$cncf$lcn = NULL
-fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
-fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
+##-----------------
+## MERGE alterations (general)
+## and ATRX
+##-----------------
 
 
-facets_out = list(
-  snps = out$jointseg,
-  segs = fit$cncf,
-  purity = as.numeric(fit$purity),
-  ploidy = as.numeric(fit$ploidy),
-  dipLogR = out$dipLogR,
-  alBalLogR = out$alBalLogR,
-  flags = out$flags,
-  em_flags = fit$emflags,
-  loglik = fit$loglik)
-
-gene_out = facetsSuite::gene_level_changes(facets_output = facets_out,
-                                           genome = 'hg19')
-ATRX = gene_out[which(gene_out$gene == 'ATRX'), ]
-        
-        
-        
-        
 
 ##-----------------
 ## modify matrix
