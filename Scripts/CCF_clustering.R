@@ -54,3 +54,48 @@ for(i in unique(sample_original$PatientID)){
 }
 
 sample_original = sample_original[which(sample_original$PatientID %in% a$id), ]
+
+
+##----------------+
+## solid tumor vs csf
+##----------------+
+b = data.frame()
+for(i in unique(a$id)){
+  tumor_id = sample_original$SampleID[which(sample_original$PatientID == i & 
+                                              sample_original$ORDER == 1)]
+  csf_id = sample_original$SampleID[which(sample_original$PatientID == i & 
+                                            sample_original$ORDER == 2)]
+  
+  tumor_maf = maf[which(maf$Tumor_Sample_Barcode == tumor_id), ]
+  csf_maf = maf[which(maf$Tumor_Sample_Barcode == csf_id),]
+  
+  both = intersect(tumor_maf$Hugo_Symbol, csf_maf$Hugo_Symbol)
+  
+  if(length(both) != 0){
+    tumor_ccf = tumor_maf[which(tumor_maf$Hugo_Symbol %in% both), 'ccf_expected_copies']
+    csf_ccf = csf_maf[which(csf_maf$Hugo_Symbol %in% both), 'ccf_expected_copies']
+    
+    if(length(tumor_ccf) == length(csf_ccf) & length(tumor_ccf) == length(both)){
+      out = data.frame(id = i,
+                       gene = both,
+                       tumor_ccf = tumor_maf[which(tumor_maf$Hugo_Symbol %in% both), 'ccf_expected_copies'],
+                       csf_ccf = csf_maf[which(csf_maf$Hugo_Symbol %in% both), 'ccf_expected_copies'])
+      
+  } else next
+  } else next
+
+  b = rbind(b, out)
+  # tumor_only = setdiff(tumor_maf$Hugo_Symbol, csf_maf$Hugo_Symbol)
+  # csf_only = setdiff(csf_maf$Hugo_Symbol, tumor_maf$Hugo_Symbol)
+}
+
+ggplot(b, aes(x = tumor_ccf[gene == 'TERT'], y = csf_ccf[gene == 'TERT'])) +
+  geom_jitter()
+
+
+
+
+
+
+
+
