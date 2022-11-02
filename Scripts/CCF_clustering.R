@@ -10,22 +10,16 @@ gc()
 .rs.restartR()
 setup(working.path = '~/Documents/MSKCC/Subhi/CSF/')
 
+
+##-----------------
+## Data
 maf = read.csv('Data/FINAL_samples/maf_annotated.txt', sep = '\t')
 csf_annotation = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
 csf_clinical = readxl::read_excel('Data/FINAL_samples/CSF_Lastest_07102022.xlsx')
-
 CSF = merge(maf, csf_annotation, by.x = 'Tumor_Sample_Barcode', by.y = 'sample', all.x = T)
 CSF = merge(CSF, csf_clinical[,c('Sample ID', 'TYPE')], by.x = 'Tumor_Sample_Barcode', by.y = 'Sample ID', all.x = T)
-head(CSF)
-
-
-boxplot(CSF$ccf_expected_copies[which(CSF$TYPE == 'TUMOR' & CSF$Hugo_Symbol == 'PTEN')],
-     CSF$ccf_expected_copies[which(CSF$TYPE == 'CSF' & CSF$Hugo_Symbol == 'PTEN')])
-
-head(csf_annotation$sample)
-head(maf$Tumor_Sample_Barcode)
-
-
+binary = read.csv('Data/FINAL_samples/CSF_binary_all.txt', sep = '\t')
+binary_true = read.csv('Data/FINAL_samples/CSF_binary_QC_true.txt', sep = '\t')
 
 ##-----------------
 ## matched pairs
@@ -39,30 +33,64 @@ pass = merge(sample_match, sample_original, by.x = 'sample', by.y = 'SampleID', 
 pass = pass[!is.na(pass$TYPE) & !is.na(pass$ORDER), ]
 pass = pass[which(pass$fit == 'pass'), ]
 
-GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
-        'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
-        'TP53', 'KRAS', 'ATRX', 'FGF3', 'FGF4', 'FGF19')
 
-a = data.frame()
-for(i in unique(sample_original$PatientID)){
-  if(length(sample_original$SampleID[which(sample_original$PatientID == i)]) > 1 &
-     sample_original$TYPE[which(sample_original$ORDER == 1)] == 'TUMOR'){
+id_pairs = data.frame()
+for(i in unique(pass$PATIENT_ID)){
+  if(all(length(pass$sample[which(pass$PATIENT_ID == i)]) > 1,
+     pass$TYPE[which(pass$PATIENT_ID == i & pass$ORDER == 1)] == 'TUMOR',
+     pass$TYPE[which(pass$PATIENT_ID == i & pass$ORDER == 2)] == 'CSF')){
     id = i
     out = data.frame(id = id)
+    
   } else next
-  a = rbind(a, out)
+  
+  id_pairs = rbind(id_pairs, out)
 }
 
-sample_original = sample_original[which(sample_original$PatientID %in% a$id), ]
+sample_original = sample_original[which(sample_original$PatientID %in% id_pairs$id), ]
 
 
 ##----------------+
 ## solid tumor vs csf
 ##----------------+
-b = data.frame()
-for(i in unique(a$id)){
-  tumor_id = sample_original$SampleID[which(sample_original$PatientID == i & 
-                                              sample_original$ORDER == 1)]
+gene_pairs = data.frame()
+for(i in unique(id_pairs$id)){
+  data_sub = sample_original[which(sample_original$PatientID == i), ]
+  tumor_id = data_sub$SampleID[which(data_sub$ORDER == 1 & data_sub$TYPE == 'TUMOR')]
+  tumor_id = ifelse(length(tumor_id) == 0, NA, tumor_id)
+  csf_id = data_sub$SampleID[which(data_sub$ORDER == 2 & data_sub$TYPE == 'CSF')]
+  csf_id = ifelse(length(csf_id) == 0, NA, csf_id)
+  out = data.frame(id = i,
+                   tumor = tumor_id,
+                   csf = csf_id)
+  gene_pairs = rbind(gene_pairs, out)
+}
+
+gene_pairs = gene_pairs[!with(gene_pairs, is.na(tumor) | is.na(csf)), ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   csf_id = sample_original$SampleID[which(sample_original$PatientID == i & 
                                             sample_original$ORDER == 2)]
   
@@ -89,12 +117,17 @@ for(i in unique(a$id)){
   # csf_only = setdiff(csf_maf$Hugo_Symbol, tumor_maf$Hugo_Symbol)
 }
 
-ggplot(b, aes(x = tumor_ccf[gene == 'TERT'], y = csf_ccf[gene == 'TERT'])) +
+ggplot(b, aes(x = tumor_ccf, y = csf_ccf)) +
   geom_jitter()
 
 
 
-
+genes <- paste0("gene",1:1000)
+set.seed(20210302)
+gene_list <- list(A = sample(genes,100),
+                  B = sample(genes,200),
+                  C = sample(genes,300),
+                  D = sample(genes,200))
 
 
 
