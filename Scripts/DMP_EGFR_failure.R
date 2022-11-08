@@ -60,4 +60,3 @@ binaryupdated$gene = NULL
 binaryupdated[binaryupdated == 1] = 2
 
 write.table(binaryupdated, file = 'Data/FINAL_samples/CSF_binaryUPDATED.txt', sep = '\t')
-
