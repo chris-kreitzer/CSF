@@ -6,6 +6,7 @@
 ## start: 10/07/2022
 ## update: 10/12/2022
 ## update: 10/27/2022
+## update: 11/10/2022
 ## chris-kreitzer
 
 
@@ -36,12 +37,7 @@ for(i in unique(folders)){
       for(j in unique(sub_dirs)){
         Rdata = list.files(pattern = '.Rdata$', path = paste0(j, '/'), full.names = T)
         load(file = Rdata)
-        fit$cncf$cf = NULL
-        fit$cncf$tcn = NULL
-        fit$cncf$lcn = NULL
-        fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
         fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-        fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
         
         #' compile the whole FACETS output
         name = basename(j)
@@ -58,47 +54,29 @@ for(i in unique(folders)){
           em_flags = fit$emflags,
           loglik = fit$loglik)
         
-        gene_out = facetsSuite::gene_level_changes(facets_output = facets_out,
-                                                   genome = 'hg19')
+        #' gene_level_changes() and other metrics 
+        gene_out = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19', algorithm = 'cncf')
         IGV = facetsSuite::format_igv_seg(facets_output = facets_out, sample_id = j, normalize = T)
         gene_out = gene_out[which(gene_out$gene %in% GOI), ]
-        wgd = facets_fit_qc(facets_output = facets_out)$wgd
+        fcna_output = facetsSuite::calculate_fraction_cna(facets_out$segs, facets_out$ploidy, genome = 'hg19', algorithm = 'cncf')
+        wgd = fcna_output$genome_doubled
         
-        
-        ##-----------
-        ## gene-level-out:
+        #---------+
+        # loop through genes
+        #---------+
         for(k in 1:nrow(gene_out)){
-          if(wgd){
-            copyStates = copynumberstates[which(copynumberstates$wgd == T), ]
-            tcn = gene_out$tcn[k]
-            lcn = gene_out$lcn[k]
-            filter = gene_out$filter[k]
-            call = ifelse(filter %in% gene_filter_states, NA,
-                          ifelse(is.na(lcn), copyStates$numeric_call[which(copyStates$tcn == tcn &
-                                                          is.na(copyStates$lcn))],
-                                 copyStates$numeric_call[which(copyStates$tcn == tcn &
-                                                                 copyStates$lcn == lcn)]))
-            call = ifelse(length(call) != 0, call, NA)
-            gene = gene_out$gene[k]
-            gene_final = data.frame(id = name,
-                                    gene = gene,
-                                    call = call)
-          } else {
-            copyStates = copynumberstates[which(copynumberstates$wgd == F), ]
-            tcn = gene_out$tcn[k]
-            lcn = gene_out$lcn[k]
-            filter = gene_out$filter[k]
-            call = ifelse(filter %in% gene_filter_states, NA,
-                          ifelse(is.na(lcn), copyStates$numeric_call[which(copyStates$tcn == tcn &
-                                                                             is.na(copyStates$lcn))],
-                                 copyStates$numeric_call[which(copyStates$tcn == tcn &
-                                                                 copyStates$lcn == lcn)]))
-            call = ifelse(length(call) != 0, call, NA)
-            gene = gene_out$gene[k]
-            gene_final = data.frame(id = name,
-                                    gene = gene,
-                                    call = call)
-          }
+          filter = gene_out$filter[k]
+          gene = gene_out$gene[k]
+          call = gene_out$cn_state[k]
+          numeric_call = ifelse(call == 'GAIN (many states)' & wgd, -1,
+                                ifelse(call == 'TETRAPLOID' & wgd, 0, 
+                                       unique(copy_number_states$numeric_call[which(copy_number_states$call == call)])))
+          
+          gene_final = data.frame(id = name,
+                                  gene = gene,
+                                  call = call,
+                                  n_call = numeric_call)
+          
           alterations = rbind(alterations, gene_final)
         }
       }
@@ -107,6 +85,12 @@ for(i in unique(folders)){
     }
   })
 }
+
+
+
+
+
+
 
 
 
