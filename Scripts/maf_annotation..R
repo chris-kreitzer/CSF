@@ -2,15 +2,17 @@
 ## CCF annotation of 
 ## mutations
 ##-----------------
-
+##
+## start: 11/02/2022
+## revision: 11/11/2022
+## chris-kreitzer
 
 clean()
 gc()
 .rs.restartR()
 setup(working.path = '~/Documents/MSKCC/Subhi/CSF/')
-maf = read.csv('Data/FINAL_samples/maf_onco_Alex.maf', sep = '\t')
+maf = read.csv('Data/Final/maf_onco_Alex.maf', sep = '\t')
 maf = maf[which(maf$Tumor_Sample_Barcode != ""), ]
-
 folders = list.files(path = '.')
 folders = folders[grepl(pattern = 'C-', x = folders)]
 
@@ -27,12 +29,7 @@ for(i in unique(folders)){
       for(j in unique(sub_dirs)){
         Rdata = list.files(pattern = '.Rdata$', path = paste0(j, '/'), full.names = T)
         load(file = Rdata)
-        fit$cncf$cf = NULL
-        fit$cncf$tcn = NULL
-        fit$cncf$lcn = NULL
-        fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
         fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-        fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
         
         #' fetch values
         name = basename(j)
@@ -45,7 +42,7 @@ for(i in unique(folders)){
           maf_annotated = facetsSuite::ccf_annotate_maf(maf = maf_sub,
                                                         segs = segs,
                                                         purity = purity,
-                                                        algorithm = 'em')
+                                                        algorithm = 'cncf')
         } else next
         
       all_out = rbind(all_out, maf_annotated)
@@ -54,5 +51,4 @@ for(i in unique(folders)){
   })
 }
 
-
-write.table(all_out, file = 'Data/FINAL_samples/maf_annotated.txt', sep = '\t', row.names = F)
+write.table(all_out, file = 'Data/Final/maf_annotated.txt', sep = '\t', row.names = F)
