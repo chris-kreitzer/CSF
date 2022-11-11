@@ -224,3 +224,39 @@ all_out = all_out[-nrow(all_out), ]
 
 write.table(x = all_out, file = '~/Documents/MSKCC/Subhi/CSF/Data/Final/CSF_binary_noFilter.txt', sep = '\t')
 
+##----------------+
+## transform numeric
+## alteration matrix in 
+## binary format; consider
+## only filter == PASS calls/genes
+##----------------+
+alterations = read.csv('Data/Final/numericAlterations.txt', sep = '\t')
+alterations$n_call[which(alterations$filter %in% c('suppress_segment_too_large', 'suppress_large_homdel', 'suppress_likely_unfocal_large_gain'))] = NA
+
+## modify matrix
+alteration_matrix = setNames(data.frame(matrix(ncol = 21, nrow = 0)), unique(alterations$gene))
+
+all_out = data.frame()
+counter = 1
+for(id in unique(alterations$id)){
+  data.mut.sub = alterations[which(alterations$id == id), ]
+  if(nrow(data.mut.sub) != 0){
+    for(j in unique(data.mut.sub$gene)){
+      if(j %in% colnames(alteration_matrix)){
+        alteration_matrix[counter, j] = data.mut.sub$n_call[which(data.mut.sub$gene == j)][1]
+      }
+    }
+    alteration_matrix[counter, 'Sample.ID'] = id
+    counter = counter + 1
+    all_out = rbind(all_out, alteration_matrix)
+  }
+}
+
+all_out = all_out[!duplicated(all_out), ]
+all_out = t(all_out)
+colnames(all_out) = all_out[nrow(all_out), ]
+all_out = all_out[-nrow(all_out), ]
+
+write.table(x = all_out, file = '~/Documents/MSKCC/Subhi/CSF/Data/Final/CSF_binary_Filtered.txt', sep = '\t')
+
+#' out
