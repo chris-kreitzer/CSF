@@ -21,9 +21,10 @@ Sex_annotation$path = paste(Sex_annotation$PatientID, Sex_annotation$SampleID, s
 
 ##' Definitions
 copynumberstates = facetsSuite:::copy_number_states
-GOI = c("CDKN2A", "CDKN2B", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
-        'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
-        'TP53', 'KRAS', 'ATRX', 'PIK3CA', 'PIK3R1', 'PIK3R2', 'BRAF')
+GOI = c("CDKN2A", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
+        'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 
+        'NF1', 'CDK6', 'TP53', 'ATRX', 'PIK3CA', 'BRAF', 'PIK3R1', 'PIK3R2')
+
 gene_filter_states = c('suppress_segment_too_large', 
                        'suppress_likely_unfocal_large_gain', 
                        'suppress_large_homdel')
@@ -258,5 +259,23 @@ colnames(all_out) = all_out[nrow(all_out), ]
 all_out = all_out[-nrow(all_out), ]
 
 write.table(x = all_out, file = '~/Documents/MSKCC/Subhi/CSF/Data/Final/CSF_binary_Filtered.txt', sep = '\t')
+
+
+##----------------+
+## only show FACETS QC TRUE
+## samples in binary
+##----------------+
+sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
+sample_match = sample_match[which(sample_match$fit == 'pass'), ]
+sample_match = sample_match[!grepl(pattern = '.N0.*', x = sample_match$sample), ]
+
+binary = read.csv('Data/Final/CSF_binary_Filtered.txt', sep = '\t')
+colnames(binary) = gsub(pattern = '\\.', '-', colnames(binary))
+
+binary_QC = binary[,which(colnames(binary) %in% sample_match$sample)]
+binary_QC = binary_QC[!row.names(binary_QC) == 'CDKN2B', ]
+binary_QC = binary_QC[!row.names(binary_QC) == 'KRAS', ]
+
+write.table(binary_QC, file = 'Data/Final/CSF_binary_Filtered_QC_True.txt', sep = '\t', quote = F)
 
 #' out
