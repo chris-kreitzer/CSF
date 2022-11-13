@@ -24,7 +24,8 @@ Sex_annotation$path = paste(Sex_annotation$PatientID, Sex_annotation$SampleID, s
 copynumberstates = facetsSuite:::copy_number_states
 GOI = c("CDKN2A", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
         'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 
-        'NF1', 'CDK6', 'TP53', 'ATRX', 'PIK3CA', 'BRAF', 'PIK3R1', 'PIK3R2')
+        'NF1', 'CDK6', 'TP53', 'ATRX', 'PIK3CA', 
+        'BRAF', 'PIK3R1', 'PIK3R2')
 
 gene_filter_states = c('suppress_segment_too_large', 
                        'suppress_likely_unfocal_large_gain', 
@@ -133,12 +134,12 @@ write.table(alterations, file = 'Data/Final/numericAlterations.txt', sep = '\t',
 ##----------------+
 ## transform numeric 
 ## alteration matrix in 
-## binary format
+## binary format; no FILTERS considered
 ##----------------+
 alterations = read.csv('Data/Final/numericAlterations.txt', sep = '\t')
 
 ## modify matrix
-alteration_matrix = setNames(data.frame(matrix(ncol = 21, nrow = 0)), unique(alterations$gene))
+alteration_matrix = setNames(data.frame(matrix(ncol = 19, nrow = 0)), unique(alterations$gene))
 
 all_out = data.frame()
 counter = 1
@@ -163,6 +164,7 @@ all_out = all_out[-nrow(all_out), ]
 
 write.table(x = all_out, file = '~/Documents/MSKCC/Subhi/CSF/Data/Final/CSF_binary_noFilter.txt', sep = '\t')
 
+
 ##----------------+
 ## transform numeric
 ## alteration matrix in 
@@ -173,7 +175,7 @@ alterations = read.csv('Data/Final/numericAlterations.txt', sep = '\t')
 alterations$n_call[which(alterations$filter %in% c('suppress_segment_too_large', 'suppress_large_homdel', 'suppress_likely_unfocal_large_gain'))] = NA
 
 ## modify matrix
-alteration_matrix = setNames(data.frame(matrix(ncol = 21, nrow = 0)), unique(alterations$gene))
+alteration_matrix = setNames(data.frame(matrix(ncol = 19, nrow = 0)), unique(alterations$gene))
 
 all_out = data.frame()
 counter = 1
@@ -210,12 +212,8 @@ sample_match = sample_match[!grepl(pattern = '.N0.*', x = sample_match$sample), 
 binary = read.csv('Data/Final/CSF_binary_Filtered.txt', sep = '\t')
 colnames(binary) = gsub(pattern = '\\.', '-', colnames(binary))
 
-binary_QC = binary[,which(colnames(binary) %in% sample_match$sample)]
-binary_QC = binary_QC[!row.names(binary_QC) == 'CDKN2B', ]
-binary_QC = binary_QC[!row.names(binary_QC) == 'KRAS', ]
-
+binary_QC = binary[, which(colnames(binary) %in% sample_match$sample)]
 write.table(binary_QC, file = 'Data/Final/CSF_binary_Filtered_QC_True.txt', sep = '\t', quote = F)
-
 
 
 
