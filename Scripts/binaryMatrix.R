@@ -7,6 +7,7 @@
 ## update: 10/12/2022
 ## update: 10/27/2022
 ## update: 11/10/2022
+## update: 11/13/2022
 ## chris-kreitzer
 
 
@@ -66,6 +67,7 @@ for(i in unique(folders)){
         gene_out = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19', algorithm = 'cncf')
         IGV = facetsSuite::format_igv_seg(facets_output = facets_out, sample_id = j, normalize = T)
         gene_out = gene_out[which(gene_out$gene %in% GOI), ]
+        gene_out$cn_state = ifelse(gene_out$cn_state == 'INDETERMINATE' & gene_out$tcn > 4, 'AMP', gene_out$cn_state)
         fcna_output = facetsSuite::calculate_fraction_cna(facets_out$segs, facets_out$ploidy, genome = 'hg19', algorithm = 'cncf')
         wgd = fcna_output$genome_doubled
         
@@ -75,7 +77,6 @@ for(i in unique(folders)){
         for(k in 1:nrow(gene_out)){
           filter = gene_out$filter[k]
           gene = gene_out$gene[k]
-          
           if(gene == 'ATRX'){
             if(Sex_annotation$Sex[which(Sex_annotation$SampleID == name)] == 'M'){
               call = gene_out$cn_state[k]
@@ -126,69 +127,6 @@ IGV_all$ID = basename(IGV_all$ID)
 write.table(IGV_all, file = 'Data/Final/IGV_all.seg', sep = '\t', row.names = F)
 write.table(alterations, file = 'Data/Final/numericAlterations.txt', sep = '\t', row.names = F)
 
-
-##-----------------
-## work on ATRX:
-##-----------------
-folders = list.files(path = '.')
-folders = folders[grepl(pattern = 'C-', x = folders)]
-sample_clinical = readxl::read_excel('Data/Final/ALEX_DATABASE_Nov6th_2022.xlsx')
-sample_clinical_short = sample_clinical[, c('Patient ID', 'Sample ID', 'Sex')]
-sample_clinical_short = as.data.frame(sample_clinical_short)
-missing_Sex = sample_clinical_short$`Patient ID`[which(sample_clinical_short$Sex == 'NA')]
-
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-K3KAAJ')] = 'F'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-9DDAVH')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-006880')] = 'F'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-006881')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-006882')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-006883')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-001521')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-U2V48A')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-AR2NUP')] = 'F'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-002116')] = 'F'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-0E4MEV')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-001393')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-WH70H5')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-FXDRJ4')] = 'F'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-K6YHWN')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-6UMJWC')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-F5JTRU')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-07E77W')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-J72UAD')] = 'F'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-1K2R9U')] = 'F'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-NWDR08')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-9XEA6D')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-ACM8V8')] = 'F'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-JPXFN1')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-WCM0NX')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-4173R4')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-23TLXA')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-9E8T53')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-N7LDHM')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-002114')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-V4TWV5')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-R6KLRF')] = 'M'
-sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-X4RMEV')] = 'F'
-
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-09T7CL')] = 'M'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-001615')] = 'M'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-4173R4')] = 'F'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-56D79J')] = 'M'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-5XD5TE')] = 'M'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-65DNPK')] = 'M'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-6JMECR')] = 'M'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-9E8T53')] = 'M'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-A32F9N')] = 'M'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-NRMAAD')] = 'M'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-UMDEWL')] = 'M'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-DVCFA2')] = 'F'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-D2P3RM')] = 'M'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-PTK9RU')] = 'M'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-NC3N8D')] = 'F'
-# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-D7MUWF')] = 'M'
-colnames(sample_clinical_short) = c('PatientID', 'SampleID', 'Sex')
-write.table(sample_clinical_short, file = 'Data/Final/Samples_Sex_Annotation.txt', sep = '\t', row.names = F)
 
 
 
@@ -277,5 +215,76 @@ binary_QC = binary_QC[!row.names(binary_QC) == 'CDKN2B', ]
 binary_QC = binary_QC[!row.names(binary_QC) == 'KRAS', ]
 
 write.table(binary_QC, file = 'Data/Final/CSF_binary_Filtered_QC_True.txt', sep = '\t', quote = F)
+
+
+
+
+##-----------------
+## work on ATRX:
+## correct Sex assignment
+## SampleSheet Excle!!!
+##-----------------
+# folders = list.files(path = '.')
+# folders = folders[grepl(pattern = 'C-', x = folders)]
+# sample_clinical = readxl::read_excel('Data/Final/ALEX_DATABASE_Nov6th_2022.xlsx')
+# sample_clinical_short = sample_clinical[, c('Patient ID', 'Sample ID', 'Sex')]
+# sample_clinical_short = as.data.frame(sample_clinical_short)
+# missing_Sex = sample_clinical_short$`Patient ID`[which(sample_clinical_short$Sex == 'NA')]
+Sex = read.csv('Data/FINAL_samples/Cohort_Sex.txt', sep = '\t')
+
+
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-K3KAAJ')] = 'F'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-9DDAVH')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-006880')] = 'F'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-006881')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-006882')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-006883')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-001521')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-U2V48A')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-AR2NUP')] = 'F'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-002116')] = 'F'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-0E4MEV')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-001393')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-WH70H5')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-FXDRJ4')] = 'F'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-K6YHWN')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-6UMJWC')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-F5JTRU')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-07E77W')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-J72UAD')] = 'F'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-1K2R9U')] = 'F'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-NWDR08')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-9XEA6D')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-ACM8V8')] = 'F'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-JPXFN1')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-WCM0NX')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-4173R4')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-23TLXA')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-9E8T53')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-N7LDHM')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-002114')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-V4TWV5')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-R6KLRF')] = 'M'
+# sample_clinical_short$Sex[which(sample_clinical_short$`Patient ID` == 'C-X4RMEV')] = 'F'
+
+Sex$Sex[which(Sex$PatientID == 'C-001615')] = 'M'
+Sex$Sex[which(Sex$PatientID == 'C-UMDEWL')] = 'M'
+Sex$Sex[which(Sex$PatientID == 'C-DVCFA2')] = 'F'
+Sex$Sex[which(Sex$PatientID == 'C-PTK9RU')] = 'M'
+Sex$Sex[which(Sex$PatientID == 'C-D2P3RM')] = 'M'
+Sex$Sex[which(Sex$PatientID == 'C-09T7CL')] = 'M'
+Sex$Sex[which(Sex$PatientID == 'C-4173R4')] = 'F'
+Sex$Sex[which(Sex$PatientID == 'C-56D79J')] = 'M'
+Sex$Sex[which(Sex$PatientID == 'C-5XD5TE')] = 'M'
+Sex$Sex[which(Sex$PatientID == 'C-65DNPK')] = 'M'
+Sex$Sex[which(Sex$PatientID == 'C-6JMECR')] = 'M'
+Sex$Sex[which(Sex$PatientID == 'C-9E8T53')] = 'M'
+Sex$Sex[which(Sex$PatientID == 'C-9XPJL0')] = 'F'
+Sex$Sex[which(Sex$PatientID == 'C-A32F9N')] = 'M'
+Sex$Sex[which(Sex$PatientID == 'C-D7MUWF')] = 'M'
+Sex$Sex[which(Sex$PatientID == 'C-NRMAAD')] = 'M'
+
+# colnames(sample_clinical_short) = c('PatientID', 'SampleID', 'Sex')
+# write.table(sample_clinical_short, file = 'Data/Final/Samples_Sex_Annotation.txt', sep = '\t', row.names = F)
 
 #' out
