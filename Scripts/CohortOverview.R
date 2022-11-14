@@ -94,11 +94,15 @@ fraction_out = merge(fraction_out, samples_keep[,c('sample', 'ORDER')],
 fraction_out$id = factor(fraction_out$id, levels = ordering$id)
 
 uu = ggplot(fraction_out, aes(x = id, y = n, fill = ORDER)) +
-  geom_bar(stat = 'identity', position = 'fill') +
-  scale_fill_manual(values = c('1' = 'black',
-                               '2' = 'firebrick4', 
-                               '3' = 'firebrick1',
-                               '4' = 'grey')) +
+  geom_bar(stat = 'identity', position = 'fill', color = 'black', size = 0.08) +
+  scale_fill_manual(values = c('1' = 'grey75',
+                               '2' = '#8c131c', 
+                               '3' = '#8d322b',
+                               '4' = '#dc6a4d',
+                               '5' = '#e9ab91',
+                               '6' = '#f7e5d9',
+                               '7' = '#fff9f5',
+                               '8' = 'white')) +
   coord_flip() +
   theme_minimal() +
   scale_y_continuous(position = 'right', labels = c(0, 25, 50, 75, 100), 
@@ -108,7 +112,8 @@ uu = ggplot(fraction_out, aes(x = id, y = n, fill = ORDER)) +
         axis.text.x = element_text(color = 'black')) +
   labs(y = '', x = '')
 
+uu
 
 #' plot in a grid
-plot_grid(rr, uu, ncol = 2, align = 'hv')
+plot_grid(rr, uu, ncol = 2, align = 'hv', rel_widths = c(1, 0.2))
 
