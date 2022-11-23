@@ -52,3 +52,5 @@ for(i in unique(folders)){
 }
 
 write.table(all_out, file = 'Data/Final/maf_annotated.txt', sep = '\t', row.names = F)
+
+#' out
