@@ -11,58 +11,84 @@ setup(working.path = '~/Documents/MSKCC/Subhi/CSF/')
 ##-----------------
 sample_pairs = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'DMP_CSF_Pairs')
 sample_original = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'Database')
+sample_original_pass = sample_original[which(sample_original$FACETS_QC == 'pass'), ]
+samples_alterations = read.csv('Data/Final/CSF_binary_Filtered_QC_True.txt', sep = '\t')
+colnames(samples_alterations) = gsub(pattern = '\\.', replacement = '-', x = colnames(samples_alterations))
+samples_alterations = samples_alterations[,-which(names(samples_alterations) %in% c('P-0006546-T02-IM5', 'P-0006546-T03-IM6',
+                                                                                    's_C_006876_S013_d08', 's_C_HLCUF1_L001_d'))]
 
-sample_original
+# sample_original = sample_original[, c('Sample ID', 'TYPE', 'ORDER')]
+# colnames(sample_original)[1] = 'SampleID'
+# 
+# pass = merge(sample_match, sample_original, by.x = 'sample', by.y = 'SampleID', all.x = T)
+# pass = pass[!is.na(pass$TYPE) & !is.na(pass$ORDER), ]
+# pass = pass[which(pass$fit == 'pass'), ]
+# 
+# GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
+#         'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
+#         'TP53', 'KRAS', 'ATRX', 'FGF3', 'FGF4', 'FGF19')
+# 
+# alterations = read.csv('Data/FINAL_samples/CSF_cohort_purity_nalts.txt', sep = '\t')
 
-sample_original = sample_original[, c('Sample ID', 'TYPE', 'ORDER')]
-colnames(sample_original)[1] = 'SampleID'
-
-pass = merge(sample_match, sample_original, by.x = 'sample', by.y = 'SampleID', all.x = T)
-pass = pass[!is.na(pass$TYPE) & !is.na(pass$ORDER), ]
-pass = pass[which(pass$fit == 'pass'), ]
-
-GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
-        'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
-        'TP53', 'KRAS', 'ATRX', 'FGF3', 'FGF4', 'FGF19')
-
-alterations = read.csv('Data/FINAL_samples/CSF_cohort_purity_nalts.txt', sep = '\t')
+alterations = data.frame()
+for(i in 1:length(samples_alterations)){
+  id = colnames(samples_alterations)[i]
+  n_alts = sum(samples_alterations[,i] != 0, na.rm = T)
+  n_deletions = sum(samples_alterations[,i] < 0, na.rm = T)
+  n_amps = sum(samples_alterations[,i] > 0, na.rm = T)
+  out = data.frame(id = id,
+                   n_alts = n_alts,
+                   n_deletions = n_deletions,
+                   n_amps = n_amps)
+  alterations = rbind(alterations, out)
+}
+write.table(alterations, file = 'Data/Final/n_Alterations.txt', sep = '\t', row.names = F)
 
 
 ##-----------------
 ## GENERAL overview: 
 ## Tumor vs CSFs
 ##-----------------
-Tumor_pass = pass$sample[which(pass$TYPE == 'TUMOR')]
-CSF_pass = pass$sample[which(pass$TYPE == 'CSF')]
+passed_samples = sample_original_pass[,c('Patient ID', 'Sample ID', 'TYPE', 'Purity', 'FACETS_QC', 'Oncogenic_CNA')]
+passed_samples = as.data.frame(merge(passed_samples, alterations, by.x = 'Sample ID', by.y = 'id', all.x = T))
+
+
 
 ## number of all SCNA
 dev.off()
 pdf(file = 'Figures/SCNA_all_comparison.pdf', width = 6, height = 6)
-boxplot(alterations$n_alts[which(alterations$sample %in% Tumor_pass)],
-        alterations$n_alts[which(alterations$sample %in% CSF_pass)],
+boxplot(passed_samples$n_alts[which(passed_samples$TYPE == 'TUMOR')],
+        passed_samples$n_alts[which(passed_samples$TYPE == 'CSF')],
         xaxt = 'n',
-        yaxt = 'n')
+        yaxt = 'n',
+        ylim = c(0, 20))
 axis(side = 1, at = c(1,2), labels = c('TUMOR', 'CSF'))
 axis(side = 2, at = c(1, 5, 10 , 15, 20), labels = c(1, 5, 10 , 15, 20), las = 2)
 box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(alterations$n_alts[which(alterations$sample %in% Tumor_pass)],
-        alterations$n_alts[which(alterations$sample %in% CSF_pass)])$p.value, 3), ' (Welch Two Sample t-test)'), side = 3, line = 1.3 )
+mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_alts[which(passed_samples$TYPE == 'TUMOR')],
+                                              passed_samples$n_alts[which(passed_samples$TYPE == 'CSF')])$p.value, 3),
+                    " (Welch's t-test)"), side = 3, line = 1.3)
 
 dev.off()
 
+
+
 #' purity comparison
+passed_samples$Purity = as.numeric(as.character(passed_samples$Purity))
 pdf(file = 'Figures/purity_all_comparison.pdf', width = 6, height = 6)
-boxplot(alterations$purity[which(alterations$sample %in% Tumor_pass)],
-        alterations$purity[which(alterations$sample %in% CSF_pass)],
+boxplot(passed_samples$Purity[which(passed_samples$TYPE == 'TUMOR')],
+        passed_samples$Purity[which(passed_samples$TYPE == 'CSF')],
         xaxt = 'n',
-        yaxt = 'n')
+        yaxt = 'n',
+        ylim = c(0, 1))
 axis(side = 1, at = c(1,2), labels = c('TUMOR', 'CSF'))
 axis(side = 2, at = c(0.1, 0.5, 1), labels = paste0(c(10, 50, 100), '%'), las = 2)
 box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(alterations$purity[which(alterations$sample %in% Tumor_pass)],
-                                              alterations$purity[which(alterations$sample %in% CSF_pass)])$p.value, 3), ' (Welch Two Sample t-test)'), side = 3, line = 1.3 )
-
+mtext(text = paste0('p-value: ', round(t.test(passed_samples$Purity[which(passed_samples$TYPE == 'TUMOR')],
+                                              passed_samples$Purity[which(passed_samples$TYPE == 'CSF')])$p.value, 3),
+                    " (Welch's t-test)"), side = 3, line = 1.3)
 dev.off()
+
 
 
 ##-----------------
@@ -79,12 +105,6 @@ for(i in unique(folders)){
       for(j in unique(sub_dirs)){
         Rdata = list.files(pattern = '.Rdata$', path = paste0(j, '/'), full.names = T)
         load(file = Rdata)
-        fit$cncf$cf = NULL
-        fit$cncf$tcn = NULL
-        fit$cncf$lcn = NULL
-        fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
-        fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-        fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
         
         #' compile the whole FACETS output
         name = basename(j)
@@ -101,43 +121,24 @@ for(i in unique(folders)){
           em_flags = fit$emflags,
           loglik = fit$loglik)
         
-        if(name %in% Tumor_pass){
-          name = name
-          type = 'TUMOR'
-          ploidy = facets_fit_qc(facets_output = facets_out)$ploidy
-          wgd = facets_fit_qc(facets_output = facets_out)$wgd
-          fga = facets_fit_qc(facets_output = facets_out)$fga
-          n_amps = facets_fit_qc(facets_output = facets_out)$n_amps
-          n_homdels = facets_fit_qc(facets_output = facets_out)$n_homdels
-          n_loh = facets_fit_qc(facets_output = facets_out)$n_loh
-          out = data.frame(name = name,
-                           type = type,
-                           ploidy = ploidy,
-                           wgd = wgd,
-                           fga = fga,
-                           n_amps = n_amps,
-                           n_homdels = n_homdels,
-                           n_loh = n_loh)
-          
-        } else if (name %in% CSF_pass){
-          name = name
-          type = 'CSF'
-          ploidy = facets_fit_qc(facets_output = facets_out)$ploidy
-          wgd = facets_fit_qc(facets_output = facets_out)$wgd
-          fga = facets_fit_qc(facets_output = facets_out)$fga
-          n_amps = facets_fit_qc(facets_output = facets_out)$n_amps
-          n_homdels = facets_fit_qc(facets_output = facets_out)$n_homdels
-          n_loh = facets_fit_qc(facets_output = facets_out)$n_loh
-          out = data.frame(name = name,
-                           type = type,
-                           ploidy = ploidy,
-                           wgd = wgd,
-                           fga = fga,
-                           n_amps = n_amps,
-                           n_homdels = n_homdels,
-                           n_loh = n_loh)
-        } else next
         
+        ##---- some metrics
+        
+        ploidy = facets_fit_qc(facets_output = facets_out)$ploidy
+        wgd = facets_fit_qc(facets_output = facets_out)$wgd
+        fga = facets_fit_qc(facets_output = facets_out)$fga
+        n_amps = facets_fit_qc(facets_output = facets_out)$n_amps
+        n_homdels = facets_fit_qc(facets_output = facets_out)$n_homdels
+        n_loh = facets_fit_qc(facets_output = facets_out)$n_loh
+        
+        out = data.frame(name = name,
+                           ploidy = ploidy,
+                           wgd = wgd,
+                           fga = fga,
+                           n_amps = n_amps,
+                           n_homdels = n_homdels,
+                           n_loh = n_loh)
+
         all_out = rbind(all_out, out)
       }
     }
