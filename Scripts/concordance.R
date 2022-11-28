@@ -8,7 +8,10 @@ gc()
 setup(working.path = '~/Documents/MSKCC/Subhi/CSF/')
 
 
-##-----------------
+##----------------+
+## just work on the 
+## paired DMP/CSF samples
+##----------------+
 sample_pairs = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'DMP_CSF_Pairs')
 sample_original = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'Database')
 sample_original_pass = sample_original[which(sample_original$FACETS_QC == 'pass'), ]
@@ -16,19 +19,6 @@ samples_alterations = read.csv('Data/Final/CSF_binary_Filtered_QC_True.txt', sep
 colnames(samples_alterations) = gsub(pattern = '\\.', replacement = '-', x = colnames(samples_alterations))
 samples_alterations = samples_alterations[,-which(names(samples_alterations) %in% c('P-0006546-T02-IM5', 'P-0006546-T03-IM6',
                                                                                     's_C_006876_S013_d08', 's_C_HLCUF1_L001_d'))]
-
-# sample_original = sample_original[, c('Sample ID', 'TYPE', 'ORDER')]
-# colnames(sample_original)[1] = 'SampleID'
-# 
-# pass = merge(sample_match, sample_original, by.x = 'sample', by.y = 'SampleID', all.x = T)
-# pass = pass[!is.na(pass$TYPE) & !is.na(pass$ORDER), ]
-# pass = pass[which(pass$fit == 'pass'), ]
-# 
-# GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
-#         'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
-#         'TP53', 'KRAS', 'ATRX', 'FGF3', 'FGF4', 'FGF19')
-# 
-# alterations = read.csv('Data/FINAL_samples/CSF_cohort_purity_nalts.txt', sep = '\t')
 
 alterations = data.frame()
 for(i in 1:length(samples_alterations)){
@@ -42,61 +32,35 @@ for(i in 1:length(samples_alterations)){
                    n_amps = n_amps)
   alterations = rbind(alterations, out)
 }
+
 write.table(alterations, file = 'Data/Final/n_Alterations.txt', sep = '\t', row.names = F)
 
 
 ##-----------------
 ## GENERAL overview: 
-## Tumor vs CSFs
+## Tumor and matched CSF
 ##-----------------
+sample_pairs = sample_pairs[, c('PatientID', 'DMP_CNA_first', 'CSF_CNA_first')]
 passed_samples = sample_original_pass[,c('Patient ID', 'Sample ID', 'TYPE', 'Purity', 'FACETS_QC', 'Oncogenic_CNA')]
 passed_samples = as.data.frame(merge(passed_samples, alterations, by.x = 'Sample ID', by.y = 'id', all.x = T))
+passed_samples$plot = NA
+
+for(i in unique(passed_samples$`Sample ID`)){
+  if(i %in% sample_pairs$DMP_CNA_first){
+    passed_samples$plot[which(passed_samples$`Sample ID` == i)] = 'DMP'
+  } else if(i %in% sample_pairs$CSF_CNA_first){
+    passed_samples$plot[which(passed_samples$`Sample ID` == i)] = 'CSF'
+  } else {
+    passed_samples$plot[which(passed_samples$`Sample ID` == i)] = 'none'
+  }
+}
+
+passed_samples = passed_samples[!passed_samples$plot %in% 'none', ]
 
 
-
-## number of all SCNA
-dev.off()
-#pdf(file = 'Figures/SCNA_all_comparison.pdf', width = 6, height = 6)
-par(mfrow = c(1,3))
-pdf(file = 'Figures/SCNA_FGA_Purity.pdf', width = 9, height = 6, paper = 'a4', onefile = T)
-
-boxplot(passed_samples$n_alts[which(passed_samples$TYPE == 'TUMOR')],
-        passed_samples$n_alts[which(passed_samples$TYPE == 'CSF')],
-        xaxt = 'n',
-        yaxt = 'n',
-        ylim = c(0, 20))
-axis(side = 1, at = c(1,2), labels = c('TUMOR', 'CSF'))
-axis(side = 2, at = c(1, 5, 10 , 15, 20), labels = c(1, 5, 10 , 15, 20), las = 2)
-box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_alts[which(passed_samples$TYPE == 'TUMOR')],
-                                              passed_samples$n_alts[which(passed_samples$TYPE == 'CSF')])$p.value, 3),
-                    " (Welch's t-test)"), side = 3, line = 1.3)
-mtext(text = '#SCNAs', side = 2, line = 2.8)
-dev.off()
-
-
-
-#' purity comparison
-passed_samples$Purity = as.numeric(as.character(passed_samples$Purity))
-pdf(file = 'Figures/purity_all_comparison.pdf', width = 6, height = 6)
-boxplot(passed_samples$Purity[which(passed_samples$TYPE == 'TUMOR')],
-        passed_samples$Purity[which(passed_samples$TYPE == 'CSF')],
-        xaxt = 'n',
-        yaxt = 'n',
-        ylim = c(0, 1))
-axis(side = 1, at = c(1,2), labels = c('TUMOR', 'CSF'))
-axis(side = 2, at = c(0.1, 0.5, 1), labels = paste0(c(10, 50, 100), '%'), las = 2)
-box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(passed_samples$Purity[which(passed_samples$TYPE == 'TUMOR')],
-                                              passed_samples$Purity[which(passed_samples$TYPE == 'CSF')])$p.value, 3),
-                    " (Welch's t-test)"), side = 3, line = 1.3)
-mtext(text = 'Purity', side = 2, line = 2.8)
-dev.off()
-
-
-
-##-----------------
-## more metrics:
+##----------------+
+## FGA, n_amps and n_homo
+##----------------+
 folders = list.files(path = '.')
 folders = folders[grepl(pattern = 'C-', x = folders)]
 
@@ -125,9 +89,6 @@ for(i in unique(folders)){
           em_flags = fit$emflags,
           loglik = fit$loglik)
         
-        
-        ##---- some metrics
-        
         ploidy = facets_fit_qc(facets_output = facets_out)$ploidy
         wgd = facets_fit_qc(facets_output = facets_out)$wgd
         fga = facets_fit_qc(facets_output = facets_out)$fga
@@ -136,19 +97,64 @@ for(i in unique(folders)){
         n_loh = facets_fit_qc(facets_output = facets_out)$n_loh
         
         out = data.frame(name = name,
-                           ploidy = ploidy,
-                           wgd = wgd,
-                           fga = fga,
-                           n_amps = n_amps,
-                           n_homdels = n_homdels,
-                           n_loh = n_loh)
-
+                         ploidy = ploidy,
+                         wgd = wgd,
+                         fga = fga,
+                         n_amps = n_amps,
+                         n_homdels = n_homdels,
+                         n_loh = n_loh)
+        
         all_out = rbind(all_out, out)
       }
     }
   })
 }
+
 write.table(all_out, file = 'Data/Final/FacetsSuite_n_Alterations.txt', sep = '\t', row.names = F)
+
+##----------------+
+## Plots; SCNA (n=20)
+##----------------+
+dev.off()
+#pdf(file = 'Figures/SCNA_all_comparison.pdf', width = 6, height = 6)
+par(mfrow = c(1,3))
+pdf(file = 'Figures/SCNA_FGA_Purity.pdf', width = 9, height = 6, paper = 'a4', onefile = T)
+
+boxplot(passed_samples$n_alts[which(passed_samples$plot == 'DMP')],
+        passed_samples$n_alts[which(passed_samples$plot == 'CSF')],
+        xaxt = 'n',
+        yaxt = 'n',
+        ylim = c(0, 20))
+axis(side = 1, at = c(1,2), labels = c('TUMOR', 'CSF'))
+axis(side = 2, at = c(1, 5, 10 , 15, 20), labels = c(1, 5, 10 , 15, 20), las = 2)
+box(lwd = 2)
+mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_alts[which(passed_samples$plot == 'DMP')],
+                                              passed_samples$n_alts[which(passed_samples$plot == 'CSF')])$p.value, 3),
+                    " (Welch's t-test)"), side = 3, line = 1.3)
+mtext(text = '#SCNAs', side = 2, line = 2.8)
+dev.off()
+
+
+
+#' purity comparison
+passed_samples$Purity = as.numeric(as.character(passed_samples$Purity))
+pdf(file = 'Figures/purity_all_comparison.pdf', width = 6, height = 6)
+boxplot(passed_samples$Purity[which(passed_samples$TYPE == 'TUMOR')],
+        passed_samples$Purity[which(passed_samples$TYPE == 'CSF')],
+        xaxt = 'n',
+        yaxt = 'n',
+        ylim = c(0, 1))
+axis(side = 1, at = c(1,2), labels = c('TUMOR', 'CSF'))
+axis(side = 2, at = c(0.1, 0.5, 1), labels = paste0(c(10, 50, 100), '%'), las = 2)
+box(lwd = 2)
+mtext(text = paste0('p-value: ', round(t.test(passed_samples$Purity[which(passed_samples$TYPE == 'TUMOR')],
+                                              passed_samples$Purity[which(passed_samples$TYPE == 'CSF')])$p.value, 3),
+                    " (Welch's t-test)"), side = 3, line = 1.3)
+mtext(text = 'Purity', side = 2, line = 2.8)
+dev.off()
+
+
+
 
 
 alterations_all = merge(passed_samples, all_out, by.x = 'Sample ID', by.y = 'name', all.x = T)
