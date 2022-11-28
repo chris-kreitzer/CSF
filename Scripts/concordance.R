@@ -56,7 +56,10 @@ passed_samples = as.data.frame(merge(passed_samples, alterations, by.x = 'Sample
 
 ## number of all SCNA
 dev.off()
-pdf(file = 'Figures/SCNA_all_comparison.pdf', width = 6, height = 6)
+#pdf(file = 'Figures/SCNA_all_comparison.pdf', width = 6, height = 6)
+par(mfrow = c(1,3))
+pdf(file = 'Figures/SCNA_FGA_Purity.pdf', width = 9, height = 6, paper = 'a4', onefile = T)
+
 boxplot(passed_samples$n_alts[which(passed_samples$TYPE == 'TUMOR')],
         passed_samples$n_alts[which(passed_samples$TYPE == 'CSF')],
         xaxt = 'n',
@@ -68,7 +71,7 @@ box(lwd = 2)
 mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_alts[which(passed_samples$TYPE == 'TUMOR')],
                                               passed_samples$n_alts[which(passed_samples$TYPE == 'CSF')])$p.value, 3),
                     " (Welch's t-test)"), side = 3, line = 1.3)
-
+mtext(text = '#SCNAs', side = 2, line = 2.8)
 dev.off()
 
 
@@ -87,6 +90,7 @@ box(lwd = 2)
 mtext(text = paste0('p-value: ', round(t.test(passed_samples$Purity[which(passed_samples$TYPE == 'TUMOR')],
                                               passed_samples$Purity[which(passed_samples$TYPE == 'CSF')])$p.value, 3),
                     " (Welch's t-test)"), side = 3, line = 1.3)
+mtext(text = 'Purity', side = 2, line = 2.8)
 dev.off()
 
 
@@ -144,25 +148,29 @@ for(i in unique(folders)){
     }
   })
 }
-        
+write.table(all_out, file = 'Data/Final/FacetsSuite_n_Alterations.txt', sep = '\t', row.names = F)
+
+
+alterations_all = merge(passed_samples, all_out, by.x = 'Sample ID', by.y = 'name', all.x = T)
+head(alterations_all)
+
 
 ##-----------------
 ## FGA:
 ##-----------------
-#' purity comparison
 dev.off()
 par(mfrow = c(1,3))
-pdf(file = 'Figures/SCNA_comparison_AMP_DEL.pdf', width = 9, height = 6)
-pdf(file = 'Figures/FGA_all_comparison.pdf', width = 6, height = 6)
-boxplot(all_out$fga[which(all_out$type == 'TUMOR')],
-        all_out$fga[which(all_out$type == 'CSF')],
+pdf(file = 'Figures/SCNA_FGA_Purity.pdf', width = 9, height = 6)
+boxplot(alterations_all$fga[which(alterations_all$TYPE == 'TUMOR')],
+        alterations_all$fga[which(alterations_all$TYPE == 'CSF')],
         xaxt = 'n',
         yaxt = 'n')
 axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
 axis(side = 2, at = c(0.1, 0.5, 1), labels = paste0(c(10, 50, 100), '%'), las = 2)
 box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(all_out$fga[which(all_out$type == 'TUMOR')],
-                                              all_out$fga[which(all_out$type == 'CSF')])$p.value, 3), ' (Welch Two Sample t-test)'), side = 3, line = 1.3 )
+mtext(text = paste0('p-value: ', round(t.test(alterations_all$fga[which(alterations_all$TYPE == 'TUMOR')],
+                                              alterations_all$fga[which(alterations_all$TYPE == 'CSF')])$p.value, 3), 
+                    " (Welch's t-test)"), side = 3, line = 1.3)
 mtext(text = 'FGA', side = 2, line = 2.8)
 
 dev.off()
@@ -759,3 +767,86 @@ for(i in seq_along(gene_list)){
 
 library(cowplot)
 plot_grid(plotlist = plot_list)
+
+
+##----------------+
+## IGV-like plot for
+## paired CNA samples
+##----------------+
+sample_pairs = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'DMP_CSF_Pairs')
+
+
+##-- loop through folders
+folders = list.files(path = '.')
+folders = folders[grepl(pattern = 'C-', x = folders)]
+
+IGV_all = data.frame()
+for(i in unique(folders)){
+  try({
+    sub_dirs = list.dirs(path = i, full.names = T, recursive = F)
+    if(length(sub_dirs) == 0) next
+    else {
+      for(j in unique(sub_dirs)){
+        Rdata = list.files(pattern = '.Rdata$', path = paste0(j, '/'), full.names = T)
+        load(file = Rdata)
+        
+        #' compile the whole FACETS output
+        name = basename(j)
+        print(name)
+        
+        facets_out = list(
+          snps = out$jointseg,
+          segs = fit$cncf,
+          purity = as.numeric(fit$purity),
+          ploidy = as.numeric(fit$ploidy),
+          dipLogR = out$dipLogR,
+          alBalLogR = out$alBalLogR,
+          flags = out$flags,
+          em_flags = fit$emflags,
+          loglik = fit$loglik)
+        
+        
+        ##---- some metrics
+        IGV = facetsSuite::format_igv_seg(facets_output = facets_out, normalize = T,
+                                          sample_id = name)
+        IGV_all = rbind(IGV_all, IGV)
+      
+      }
+    }
+  })
+}
+
+IGV_all$tag = NA
+
+for(i in unique(IGV_all$ID)){
+  if(i %in% sample_pairs$DMP_CNA_first){
+    IGV_all$tag[which(IGV_all$ID == i)] = 'TUMOR'
+  } else if (i %in% sample_pairs$CSF_CNA_first){
+    IGV_all$tag[which(IGV_all$ID == i)] = 'CSF'
+  } else {
+    IGV_all$tag[which(IGV_all$ID == i)] = 'none'
+  }
+}
+
+IGV_all = IGV_all[!IGV_all$tag %in% 'none', ]
+write.table(IGV_all, file = 'Data/Final/IGV_paired_samples.txt', sep = '\t', row.names = F)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
