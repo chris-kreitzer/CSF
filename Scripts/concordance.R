@@ -9,8 +9,11 @@ setup(working.path = '~/Documents/MSKCC/Subhi/CSF/')
 
 
 ##-----------------
-sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
-sample_original = readxl::read_excel('Data/FINAL_samples/CSF_Lastest_07102022.xlsx')
+sample_pairs = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'DMP_CSF_Pairs')
+sample_original = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'Database')
+
+sample_original
+
 sample_original = sample_original[, c('Sample ID', 'TYPE', 'ORDER')]
 colnames(sample_original)[1] = 'SampleID'
 
