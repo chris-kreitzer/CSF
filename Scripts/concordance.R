@@ -283,113 +283,165 @@ write.table(IGV_all, file = 'Data/Final/IGV_paired_samples.txt', sep = '\t', row
 ## top 5 CNAs
 ##----------------+
 sample_pairs = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'DMP_CSF_Pairs')
+sample_pairs = sample_pairs[,c('PatientID', 'DMP_CNA_first', 'CSF_CNA_first')]
+sample_pairs = sample_pairs[!is.na(sample_pairs$DMP_CNA_first), ]
+GOI = c('CDKN2A', 'EGFR', 'CDK4', 'CDK6', 'PTEN')
+folders = list.files(path = '.')
+folders = folders[grepl(pattern = 'C-', x = folders)]
 
-
-
-
-
-
-##-----------------
-## all genes of interest:
-##-----------------
-Alterations_all = data.frame()
-for(i in unique(pair_folders)){
+DMP_top5 = data.frame()
+for(i in 1:nrow(sample_pairs)){
   try({
-    files = all_out$sample[which(all_out$PATIENT_ID == i)]
-    sub_dirs = c(paste0('/Users/chriskreitzer/Documents/MSKCC/Subhi/CSF/', i, '/', files, '/'))
-    #sub_dirs = list.dirs(path = i, full.names = T, recursive = F)
+    DMP = sample_pairs$DMP_CNA_first[i]
+    sub_dirs = c(paste0('/Users/chriskreitzer/Documents/MSKCC/Subhi/CSF/', sample_pairs$PatientID[i], '/', DMP, '/'))
+    Rfile = list.files(path = sub_dirs, pattern = '.Rdata$', full.names = T)
     
-    if(length(sub_dirs) == 0) next
-    else {
-      for(j in unique(sub_dirs)){
-        Rdata = list.files(pattern = '.Rdata$', path = paste0(j, '/'), full.names = T)
-        load(file = Rdata)
-        fit$cncf$cf = NULL
-        fit$cncf$tcn = NULL
-        fit$cncf$lcn = NULL
-        fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
-        fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-        fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
-        
-        #' compile the whole FACETS output
-        name = basename(j)
-        print(name)
-        
-        facets_out = list(
-          snps = out$jointseg,
-          segs = fit$cncf,
-          purity = as.numeric(fit$purity),
-          ploidy = as.numeric(fit$ploidy),
-          dipLogR = out$dipLogR,
-          alBalLogR = out$alBalLogR,
-          flags = out$flags,
-          em_flags = fit$emflags,
-          loglik = fit$loglik)
-        
-        gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
-        
-        for(gene in GOI){
-          print(gene)
-          if(gene %in% unique(gene_level$gene)){
-            gene_cnlr = gene_level[which(gene_level$gene == gene), 'median_cnlr_seg']
-            gene_cnlr = ifelse(is.na(gene_cnlr), NA, gene_cnlr)
-            out = data.frame(id = name,
-                             gene = gene,
-                             gene_cnlr = gene_cnlr)
-          } else next
-          Alterations_all = rbind(Alterations_all, out)
-        }
-      }
+    #' load Facet Fit
+    load(file = Rfile)
+    fit$cncf$lcn[fit$cncf$tcn == 1] = 0
+    fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
+    
+    #' compile the whole FACETS output
+    name = DMP
+    print(name)
+    
+    facets_out = list(
+      snps = out$jointseg,
+      segs = fit$cncf,
+      purity = as.numeric(fit$purity),
+      ploidy = as.numeric(fit$ploidy),
+      dipLogR = out$dipLogR,
+      alBalLogR = out$alBalLogR,
+      flags = out$flags,
+      em_flags = fit$emflags,
+      loglik = fit$loglik)
+    
+    gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
+    
+    for(gene in GOI){
+      print(gene)
+      if(gene %in% unique(gene_level$gene)){
+        gene_cnlr = gene_level[which(gene_level$gene == gene), 'median_cnlr_seg']
+        gene_cnlr = ifelse(is.na(gene_cnlr), NA, gene_cnlr)
+        out = data.frame(id = name,
+                         gene = gene,
+                         gene_cnlr = gene_cnlr)
+      } else next
+      DMP_top5 = rbind(DMP_top5, out)
     }
   })
 }
 
+DMP_top5$tag = 'DMP'
 
-## modify output:
-gene_list = list()
-for(i in unique(Alterations_all$gene)){
-  gene_sub = Alterations_all[which(Alterations_all$gene == i), ]
-  gene_merge = merge(gene_sub, all_out, by.x = 'id', by.y = 'sample', all.x = T)
-  gene_plot = data.frame()
-  for(j in unique(gene_merge$PATIENT_ID)){
-    tumor = gene_merge$gene_cnlr[which(gene_merge$PATIENT_ID == j & gene_merge$TYPE == 'TUMOR')]
-    csf = gene_merge$gene_cnlr[which(gene_merge$PATIENT_ID == j & gene_merge$TYPE == 'CSF')]
-    out = data.frame(id = j,
-                     tumor = tumor,
-                     csf = csf)
-    gene_plot = rbind(gene_plot, out)
+##----------------+
+## same for CSF samples
+##----------------+
+CSF_top5 = data.frame()
+for(i in 1:nrow(sample_pairs)){
+  try({
+    CSF = sample_pairs$CSF_CNA_first[i]
+    sub_dirs = c(paste0('/Users/chriskreitzer/Documents/MSKCC/Subhi/CSF/', sample_pairs$PatientID[i], '/', CSF, '/'))
+    Rfile = list.files(path = sub_dirs, pattern = '.Rdata$', full.names = T)
     
-  }
-  gene_list[[i]] = gene_plot
+    #' load Facet Fita
+    load(file = Rfile)
+    fit$cncf$lcn[fit$cncf$tcn == 1] = 0
+    fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
+    
+    #' compile the whole FACETS output
+    name = CSF
+    print(name)
+    
+    facets_out = list(
+      snps = out$jointseg,
+      segs = fit$cncf,
+      purity = as.numeric(fit$purity),
+      ploidy = as.numeric(fit$ploidy),
+      dipLogR = out$dipLogR,
+      alBalLogR = out$alBalLogR,
+      flags = out$flags,
+      em_flags = fit$emflags,
+      loglik = fit$loglik)
+    
+    gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
+    
+    for(gene in GOI){
+      print(gene)
+      if(gene %in% unique(gene_level$gene)){
+        gene_cnlr = gene_level[which(gene_level$gene == gene), 'median_cnlr_seg']
+        gene_cnlr = ifelse(is.na(gene_cnlr), NA, gene_cnlr)
+        out = data.frame(id = name,
+                         gene = gene,
+                         gene_cnlr = gene_cnlr)
+      } else next
+      CSF_top5 = rbind(CSF_top5, out)
+    }
+  })
 }
 
-#' vis
+CSF_top5$tag = 'CSF'
+
+
+##----------------+
+## modify dataframe 
+## and make a plot
+##----------------+
+CNA_evo = rbind(DMP_top5, CSF_top5)
+CNA_evo_plot = data.frame()
+for(i in unique(CNA_evo$gene)){
+  print(i)
+  gene_cnlr = CNA_evo[which(CNA_evo$gene == i), ]
+  DMP_cnlr = gene_cnlr[which(gene_cnlr$tag == 'DMP'), 'gene_cnlr']
+  CSF_cnlr = gene_cnlr[which(gene_cnlr$tag == 'CSF'), 'gene_cnlr']
+  out = data.frame(gene = i,
+                   DMP_cnlr = DMP_cnlr,
+                   CSF_cnlr = CSF_cnlr)
+  CNA_evo_plot = rbind(CNA_evo_plot, out)
+}
+
 plot_list = list()
-for(i in seq_along(gene_list)){
-  if(names(gene_list)[i] %in% c('CDKN2A', 'CDKN2B')){
-    plot = ggplot(gene_list[[i]], aes(x = tumor, y = csf)) +
+for(i in unique(CNA_evo_plot$gene)){
+  if(i %in% c('EGFR', 'CDK4', 'CDK6')){
+    plot = ggplot(CNA_evo_plot[which(CNA_evo_plot$gene == i), ], aes(x = DMP_cnlr, y = CSF_cnlr)) +
       geom_jitter() +
+      geom_abline(slope = 1, intercept = 0, linetype = 'dashed') +
+      scale_y_continuous(limits = c(-1, 2)) +
+      scale_x_continuous(limits = c(-1, 2)) +
+      theme(aspect.ratio = 1,
+            panel.border = element_rect(fill = NA,
+                                        linewidth = 1.5, 
+                                        color = 'black'),
+            axis.text = element_text(size = 10, color = 'black')) +
+      labs(x = 'Tumor [CnLR]', y = 'CSF [CnLR]', title = i) +
+      annotate(geom = 'text', x = -0.5, y = 1.7, 
+               label = paste0('rho: ', 
+                              round(cor.test(CNA_evo_plot[which(CNA_evo_plot$gene == i), 'DMP_cnlr'], 
+                                             CNA_evo_plot[which(CNA_evo_plot$gene == i), 'CSF_cnlr'], 
+                                             method = 'spearman')$estimate[[1]], 3), '\np: ',
+                              round(cor.test(CNA_evo_plot[which(CNA_evo_plot$gene == i), 'DMP_cnlr'], 
+                                             CNA_evo_plot[which(CNA_evo_plot$gene == i), 'CSF_cnlr'], 
+                                             method = 'spearman')$p.value, 3)))
+  } else {
+    plot = ggplot(CNA_evo_plot[which(CNA_evo_plot$gene == i), ], aes(x = DMP_cnlr, y = CSF_cnlr)) +
+      geom_jitter(shape = 19) +
       geom_abline(slope = 1, intercept = 0, linetype = 'dashed') +
       scale_y_continuous(limits = c(-5, 1)) +
       scale_x_continuous(limits = c(-5, 1)) +
       theme(aspect.ratio = 1,
-            panel.border = element_rect(fill = NA)) +
-      labs(x = 'Tumor [CnLR]', y = '1.CSF [CnLR]', title = names(gene_list)[i]) +
+            panel.border = element_rect(fill = NA,
+                                        linewidth = 1.5, 
+                                        color = 'black'),
+            axis.text = element_text(size = 10, color = 'black')) +
+      labs(x = 'Tumor [CnLR]', y = 'CSF [CnLR]', title = i) +
       annotate(geom = 'text', x = -4, y = 0.7, 
-               label = paste0('spearmans rho: ', 
-                              round(cor.test(gene_list[[i]]$tumor, gene_list[[i]]$csf, method = 'spearman')$estimate[[1]], 3))) 
-  } else {
-    plot = ggplot(gene_list[[i]], aes(x = tumor, y = csf)) +
-      geom_jitter() +
-      geom_abline(slope = 1, intercept = 0, linetype = 'dashed') +
-      scale_y_continuous(limits = c(-1, 4.5)) +
-      scale_x_continuous(limits = c(-1, 4.5)) +
-      theme(aspect.ratio = 1,
-            panel.border = element_rect(fill = NA)) +
-      labs(x = 'Tumor [CnLR]', y = '1.CSF [CnLR]', title = names(gene_list)[i]) +
-      annotate(geom = 'text', x = 1.1, y = 4.1, 
-               label = paste0('spearmans rho: ', 
-                              round(cor.test(gene_list[[i]]$tumor, gene_list[[i]]$csf, method = 'spearman')$estimate[[1]], 3))) 
+               label = paste0('rho: ', 
+                              round(cor.test(CNA_evo_plot[which(CNA_evo_plot$gene == i), 'DMP_cnlr'], 
+                                             CNA_evo_plot[which(CNA_evo_plot$gene == i), 'CSF_cnlr'], 
+                                             method = 'spearman')$estimate[[1]], 3), '\np: ',
+                              round(cor.test(CNA_evo_plot[which(CNA_evo_plot$gene == i), 'DMP_cnlr'], 
+                                             CNA_evo_plot[which(CNA_evo_plot$gene == i), 'CSF_cnlr'], 
+                                             method = 'spearman')$p.value, 3)))
   }
   
   plot_list[[i]] = plot
@@ -397,26 +449,4 @@ for(i in seq_along(gene_list)){
 }
 
 library(cowplot)
-plot_grid(plotlist = plot_list)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+plot_grid(plotlist = plot_list, nrow = 1, ncol = 5)
