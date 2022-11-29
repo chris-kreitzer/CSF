@@ -112,14 +112,14 @@ for(i in unique(folders)){
 
 write.table(all_out, file = 'Data/Final/FacetsSuite_n_Alterations.txt', sep = '\t', row.names = F)
 
+
 ##----------------+
 ## Plots; SCNA (n=20)
 ##----------------+
+passed_samples = merge(passed_samples, all_out, by.x = 'Sample ID', by.y = 'name', all.x = T)
 dev.off()
-#pdf(file = 'Figures/SCNA_all_comparison.pdf', width = 6, height = 6)
 par(mfrow = c(1,3))
-pdf(file = 'Figures/SCNA_FGA_Purity.pdf', width = 9, height = 6, paper = 'a4', onefile = T)
-
+# pdf(file = 'Figures/SCNA_FGA_Purity.pdf', width = 9, height = 6, paper = 'a4', onefile = T)
 boxplot(passed_samples$n_alts[which(passed_samples$plot == 'DMP')],
         passed_samples$n_alts[which(passed_samples$plot == 'CSF')],
         xaxt = 'n',
@@ -132,536 +132,156 @@ mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_alts[which(passed
                                               passed_samples$n_alts[which(passed_samples$plot == 'CSF')])$p.value, 3),
                     " (Welch's t-test)"), side = 3, line = 1.3)
 mtext(text = '#SCNAs', side = 2, line = 2.8)
-dev.off()
 
 
+##-- FGA
+boxplot(passed_samples$fga[which(passed_samples$plot == 'DMP')],
+        passed_samples$fga[which(passed_samples$plot == 'CSF')],
+        xaxt = 'n',
+        yaxt = 'n')
+axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
+axis(side = 2, at = c(0.1, 0.5, 1), las = 2)
+box(lwd = 2)
+mtext(text = paste0('p-value: ', round(t.test(passed_samples$fga[which(passed_samples$plot == 'DMP')],
+                                              passed_samples$fga[which(passed_samples$plot == 'CSF')])$p.value, 3), 
+                    " (Welch's t-test)"), side = 3, line = 1.3)
+mtext(text = 'Fraction Genome Altered', side = 2, line = 2.8)
 
-#' purity comparison
+
+##-- Purity
 passed_samples$Purity = as.numeric(as.character(passed_samples$Purity))
-pdf(file = 'Figures/purity_all_comparison.pdf', width = 6, height = 6)
-boxplot(passed_samples$Purity[which(passed_samples$TYPE == 'TUMOR')],
-        passed_samples$Purity[which(passed_samples$TYPE == 'CSF')],
+boxplot(passed_samples$Purity[which(passed_samples$plot == 'DMP')],
+        passed_samples$Purity[which(passed_samples$plot == 'CSF')],
         xaxt = 'n',
         yaxt = 'n',
         ylim = c(0, 1))
 axis(side = 1, at = c(1,2), labels = c('TUMOR', 'CSF'))
 axis(side = 2, at = c(0.1, 0.5, 1), labels = paste0(c(10, 50, 100), '%'), las = 2)
 box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(passed_samples$Purity[which(passed_samples$TYPE == 'TUMOR')],
-                                              passed_samples$Purity[which(passed_samples$TYPE == 'CSF')])$p.value, 3),
+mtext(text = paste0('p-value: ', round(t.test(passed_samples$Purity[which(passed_samples$plot == 'DMP')],
+                                              passed_samples$Purity[which(passed_samples$plot == 'CSF')])$p.value, 3),
                     " (Welch's t-test)"), side = 3, line = 1.3)
 mtext(text = 'Purity', side = 2, line = 2.8)
-dev.off()
 
 
-
-
-
-alterations_all = merge(passed_samples, all_out, by.x = 'Sample ID', by.y = 'name', all.x = T)
-head(alterations_all)
-
-
-##-----------------
-## FGA:
-##-----------------
+##----------------+
+## some other plots;
+##----------------+
+##' n_AMP
 dev.off()
 par(mfrow = c(1,3))
-pdf(file = 'Figures/SCNA_FGA_Purity.pdf', width = 9, height = 6)
-boxplot(alterations_all$fga[which(alterations_all$TYPE == 'TUMOR')],
-        alterations_all$fga[which(alterations_all$TYPE == 'CSF')],
+boxplot(passed_samples$n_amps.y[which(passed_samples$plot == 'DMP')],
+        passed_samples$n_amps.y[which(passed_samples$plot == 'CSF')],
         xaxt = 'n',
-        yaxt = 'n')
+        yaxt = 'n',
+        ylim = c(0, 10))
 axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
-axis(side = 2, at = c(0.1, 0.5, 1), labels = paste0(c(10, 50, 100), '%'), las = 2)
+axis(side = 2, at = c(0, 5, 10), labels = c(1, 5, 10), las = 2)
 box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(alterations_all$fga[which(alterations_all$TYPE == 'TUMOR')],
-                                              alterations_all$fga[which(alterations_all$TYPE == 'CSF')])$p.value, 3), 
+mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_amps.y[which(passed_samples$plot == 'DMP')],
+                                              passed_samples$n_amps.y[which(passed_samples$plot == 'CSF')])$p.value, 3), 
                     " (Welch's t-test)"), side = 3, line = 1.3)
-mtext(text = 'FGA', side = 2, line = 2.8)
-
-dev.off()
+mtext(text = '#AMPs; genome-wide', side = 2, line = 2.8)
 
 
-##-----------------
-## n_AMP
-##-----------------
-par(oma = c(3,3,3,3), omi = c(2,2,2,2))
-pdf(file = 'Figures/nAMP_all_comparison.pdf', width = 6, height = 6)
-boxplot(all_out$n_amps[which(all_out$type == 'TUMOR')],
-        all_out$n_amps[which(all_out$type == 'CSF')],
+##' n_homo-deletions
+boxplot(passed_samples$n_homdels[which(passed_samples$plot == 'DMP')],
+        passed_samples$n_homdels[which(passed_samples$plot == 'CSF')],
         xaxt = 'n',
         yaxt = 'n',
         ylim = c(0, 10))
 axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
 axis(side = 2, at = c(0, 5, 10), labels = c(1, 5, 10), las = 2)
 box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(all_out$n_amps[which(all_out$type == 'TUMOR')],
-                                              all_out$n_amps[which(all_out$type == 'CSF')])$p.value, 3), ' (Welch Two Sample t-test)'), side = 3, line = 1.3 )
-mtext(text = '#AMPs', side = 2, line = 2.8)
+mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_homdels[which(passed_samples$plot == 'DMP')],
+                                              passed_samples$n_homdels[which(passed_samples$plot == 'CSF')])$p.value, 3), 
+                    " (Welch's t-test)"), side = 3, line = 1.3)
+mtext(text = '#Deep Deletions; genome-wide', side = 2, line = 2.8)
 
-dev.off()
 
-##-----------------
-## n_homodeletions
-##-----------------
-par(oma = c(3,3,3,3), omi = c(2,2,2,2))
-pdf(file = 'Figures/nHomoDel_all_comparison.pdf', width = 6, height = 6)
-boxplot(all_out$n_homdels[which(all_out$type == 'TUMOR')],
-        all_out$n_homdels[which(all_out$type == 'CSF')],
+##' n_LOH
+boxplot(passed_samples$n_loh[which(passed_samples$plot == 'DMP')],
+        passed_samples$n_loh[which(passed_samples$plot == 'CSF')],
         xaxt = 'n',
         yaxt = 'n',
-        ylim = c(0, 10))
+        ylim = c(0, 30))
 axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
-axis(side = 2, at = c(0, 5, 10), labels = c(1, 5, 10), las = 2)
+axis(side = 2, at = c(0, 5, 10, 15, 20, 25, 30), labels = c(1, 5, 10, 15, 20, 25, 30), las = 2)
 box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(all_out$n_homdels[which(all_out$type == 'TUMOR')],
-                                              all_out$n_homdels[which(all_out$type == 'CSF')])$p.value, 3), ' (Welch Two Sample t-test)'), side = 3, line = 1.3 )
-mtext(text = '#HomoDels', side = 2, line = 2.8)
-
-dev.off()
-
-
-##-----------------
-## n_LOH
-##-----------------
-par(oma = c(3,3,3,3), omi = c(2,2,2,2))
-pdf(file = 'Figures/nLOH_all_comparison.pdf', width = 6, height = 6)
-boxplot(all_out$n_loh[which(all_out$type == 'TUMOR')],
-        all_out$n_loh[which(all_out$type == 'CSF')],
-        xaxt = 'n',
-        yaxt = 'n',
-        ylim = c(0, 20))
-axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
-axis(side = 2, at = c(0, 5, 10, 15, 20), labels = c(1, 5, 10, 15, 20), las = 2)
-box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(all_out$n_loh[which(all_out$type == 'TUMOR')],
-                                              all_out$n_loh[which(all_out$type == 'CSF')])$p.value, 3), ' (Welch Two Sample t-test)'), side = 3, line = 1.3 )
-mtext(text = '#LOH', side = 2, line = 2.8)
-
-dev.off()
+mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_loh[which(passed_samples$plot == 'DMP')],
+                                              passed_samples$n_loh[which(passed_samples$plot == 'CSF')])$p.value, 3), 
+                    " (Welch's t-test)"), side = 3, line = 1.3)
+mtext(text = '#LOH; genome-wide', side = 2, line = 2.8)
 
 
-##-----------------
-## concordance: 
-## clonal alterations: 
-## Tumor/CSFs PAIRS
-##-----------------
-sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
-sample_original = readxl::read_excel('Data/FINAL_samples/CSF_Lastest_07102022.xlsx')
-colnames(sample_original)[3] = 'SampleID'
-colnames(sample_original)[2] = 'PatientID'
+##----------------+
+## IGV-like plot for
+## paired CNA samples
+##----------------+
+sample_pairs = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'DMP_CSF_Pairs')
 
-pass = merge(sample_match, sample_original, by.x = 'sample', by.y = 'SampleID', all.x = T)
-pass = pass[!is.na(pass$TYPE) & !is.na(pass$ORDER), ]
-pass = pass[which(pass$fit == 'pass'), ]
+##-- loop through folders
+folders = list.files(path = '.')
+folders = folders[grepl(pattern = 'C-', x = folders)]
 
-GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
-        'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
-        'TP53', 'KRAS', 'ATRX', 'FGF3', 'FGF4', 'FGF19')
-
-a = data.frame()
-for(i in unique(sample_original$PatientID)){
-  if(length(sample_original$SampleID[which(sample_original$PatientID == i)]) > 1 &
-     sample_original$TYPE[which(sample_original$ORDER == 1)] == 'TUMOR'){
-    id = i
-    out = data.frame(id = id)
-  } else next
-  a = rbind(a, out)
+IGV_all = data.frame()
+for(i in unique(folders)){
+  try({
+    sub_dirs = list.dirs(path = i, full.names = T, recursive = F)
+    if(length(sub_dirs) == 0) next
+    else {
+      for(j in unique(sub_dirs)){
+        Rdata = list.files(pattern = '.Rdata$', path = paste0(j, '/'), full.names = T)
+        load(file = Rdata)
+        
+        #' compile the whole FACETS output
+        name = basename(j)
+        print(name)
+        
+        facets_out = list(
+          snps = out$jointseg,
+          segs = fit$cncf,
+          purity = as.numeric(fit$purity),
+          ploidy = as.numeric(fit$ploidy),
+          dipLogR = out$dipLogR,
+          alBalLogR = out$alBalLogR,
+          flags = out$flags,
+          em_flags = fit$emflags,
+          loglik = fit$loglik)
+        
+        
+        ##---- some metrics
+        IGV = facetsSuite::format_igv_seg(facets_output = facets_out, normalize = T,
+                                          sample_id = name)
+        IGV_all = rbind(IGV_all, IGV)
+        
+      }
+    }
+  })
 }
 
-sample_original = sample_original[which(sample_original$PatientID %in% a$id), ]
+IGV_all$tag = NA
 
-
-
-
-
-
-
-##-----------------
-## example: C-000499
-## 1 solid tumor; 2 CSFs
-##-----------------
-
-load('C-000499/P-0012463-T03-IM6/P-0012463-T03-IM6.Rdata')
-fit$cncf$cf = NULL
-fit$cncf$tcn = NULL
-fit$cncf$lcn = NULL
-fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
-fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
-
-facets_out = list(
-  snps = out$jointseg,
-  segs = fit$cncf,
-  purity = as.numeric(fit$purity),
-  ploidy = as.numeric(fit$ploidy),
-  dipLogR = out$dipLogR,
-  alBalLogR = out$alBalLogR,
-  flags = out$flags,
-  em_flags = fit$emflags,
-  loglik = fit$loglik)
-
-
-i = facetsSuite::cnlr_plot(facets_out, genome = 'hg19')
-ii = facetsSuite::valor_plot(facets_out, genome = 'hg19')
-iii = facetsSuite::icn_plot(facets_out, genome = 'hg19')
-iv = facetsSuite::cf_plot(facets_out, genome = 'hg19')
-
-i / ii / iii / iv
-
-gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
-gene_level_goi = gene_level[which(gene_level$gene %in% GOI), ]
-
-snps_solid = facets_out$snps
-
-##-----------------
-## CSF1:
-##-----------------
-load('C-000499/s_C_000499_L001_d/s_C_000499_L001_d.Rdata')
-fit$cncf$cf = NULL
-fit$cncf$tcn = NULL
-fit$cncf$lcn = NULL
-fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
-fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
-
-facets_out = list(
-  snps = out$jointseg,
-  segs = fit$cncf,
-  purity = as.numeric(fit$purity),
-  ploidy = as.numeric(fit$ploidy),
-  dipLogR = out$dipLogR,
-  alBalLogR = out$alBalLogR,
-  flags = out$flags,
-  em_flags = fit$emflags,
-  loglik = fit$loglik)
-
-
-i = facetsSuite::cnlr_plot(facets_out, genome = 'hg19')
-ii = facetsSuite::valor_plot(facets_out, genome = 'hg19')
-iii = facetsSuite::icn_plot(facets_out, genome = 'hg19')
-iv = facetsSuite::cf_plot(facets_out, genome = 'hg19')
-
-i / ii / iii / iv
-
-gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
-gene_level_goi = gene_level[which(gene_level$gene %in% GOI), ]
-
-CSF1_snps = facets_out$snps
-
-
-##-----------------
-## CSF2:
-##-----------------
-load('C-000499/s_C_000499_L002_d/s_C_000499_L002_d.Rdata')
-fit$cncf$cf = NULL
-fit$cncf$tcn = NULL
-fit$cncf$lcn = NULL
-fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
-fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
-
-facets_out = list(
-  snps = out$jointseg,
-  segs = fit$cncf,
-  purity = as.numeric(fit$purity),
-  ploidy = as.numeric(fit$ploidy),
-  dipLogR = out$dipLogR,
-  alBalLogR = out$alBalLogR,
-  flags = out$flags,
-  em_flags = fit$emflags,
-  loglik = fit$loglik)
-
-
-i = facetsSuite::cnlr_plot(facets_out, genome = 'hg19')
-ii = facetsSuite::valor_plot(facets_out, genome = 'hg19')
-iii = facetsSuite::icn_plot(facets_out, genome = 'hg19')
-iv = facetsSuite::cf_plot(facets_out, genome = 'hg19')
-
-i / ii / iii / iv
-
-gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
-gene_level_goi = gene_level[which(gene_level$gene %in% GOI), ]
-View(gene_level_goi)
-View(gene_level)
-
-
-##-----------------
-## concordance clonal
-## gene-wise
-##-----------------
-
-#' first rational:
-#' whenever I see a clonal event in solid tumor tissue
-#' I would expect to see the same alteration in CSF1,2,etc
-GOI = c("CDKN2A", "CDKN2B", "MTAP", 'EGFR', 'CDK4', 'PDGFRA', 'PTEN', 
-        'KIT', 'MDM2', 'KDR', 'MDM4', 'RB1', 'MET', 'NF1', 'CDK6', 
-        'TP53', 'KRAS', 'FGF3', 'FGF4', 'FGF19')
-
-all_out = data.frame()
-for(dirs in list.dirs(path = 'C-000499/', recursive = F)){
-  id = basename(dirs)
-  load(file = list.files(pattern = '.Rdata', path = dirs, full.names = T))
-  fit$cncf$cf = NULL
-  fit$cncf$tcn = NULL
-  fit$cncf$lcn = NULL
-  fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
-  fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-  fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
-  
-  facets_out = list(
-    snps = out$jointseg,
-    segs = fit$cncf,
-    purity = as.numeric(fit$purity),
-    ploidy = as.numeric(fit$ploidy),
-    dipLogR = out$dipLogR,
-    alBalLogR = out$alBalLogR,
-    flags = out$flags,
-    em_flags = fit$emflags,
-    loglik = fit$loglik)
-  
-  gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
-  gene_level_goi = gene_level[which(gene_level$gene %in% GOI), ]
-  
-  if(grepl(pattern = '^P-', x = id)){
-    gene_level_clonal = gene_level_goi[which(gene_level_goi$filter %in% c('RESCUE', 'PASS') &
-                                               gene_level_goi$cn_state != 'DIPLOID'), ]
-    gene_level_clonal$clonality = ifelse(gene_level_clonal$cf.em >= facets_out$purity * 0.8, 'clonal', 'subclonal')
-    gene_level_clonal = gene_level_clonal[which(gene_level_clonal$clonality == 'clonal'), ]
-    n = length(unique(gene_level_clonal$gene))
-    genes = paste(gene_level_clonal$gene, collapse = ',')
-    
+for(i in unique(IGV_all$ID)){
+  if(i %in% sample_pairs$DMP_CNA_first){
+    IGV_all$tag[which(IGV_all$ID == i)] = 'TUMOR'
+  } else if (i %in% sample_pairs$CSF_CNA_first){
+    IGV_all$tag[which(IGV_all$ID == i)] = 'CSF'
   } else {
-    gene_level_clonal = gene_level_goi[which(gene_level_goi$filter %in% c('RESCUE', 'PASS') &
-                                               gene_level_goi$cn_state != 'DIPLOID'), ]
-    n = length(unique(gene_level_clonal$gene))
-    genes = paste(gene_level_clonal$gene, collapse = ',')
+    IGV_all$tag[which(IGV_all$ID == i)] = 'none'
   }
-  
-  out = data.frame(name = 'C-000499',
-                   id = id,
-                   genes = genes,
-                   n = n,
-                   order = NA)
-  all_out = rbind(all_out, out)
-
 }
 
-all_out$concordance = NA
-for(i in 1:nrow(all_out)){
-  concordance = length(intersect(unlist(strsplit(all_out$genes[1], split = ',')), unlist(strsplit(all_out$genes[i], split = ','))))
-  print(concordance)
-  all_out$concordance[i] = concordance / all_out$n[1]
-}
-
-
-first = all_out
-first$order = seq(1,3, 1)
-
-
-##-----------------
-all_out = data.frame()
-for(dirs in list.dirs(path = 'C-000597//', recursive = F)){
-  id = basename(dirs)
-  load(file = list.files(pattern = '.Rdata', path = dirs, full.names = T))
-  fit$cncf$cf = NULL
-  fit$cncf$tcn = NULL
-  fit$cncf$lcn = NULL
-  fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
-  fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-  fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
-  
-  facets_out = list(
-    snps = out$jointseg,
-    segs = fit$cncf,
-    purity = as.numeric(fit$purity),
-    ploidy = as.numeric(fit$ploidy),
-    dipLogR = out$dipLogR,
-    alBalLogR = out$alBalLogR,
-    flags = out$flags,
-    em_flags = fit$emflags,
-    loglik = fit$loglik)
-  
-  gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
-  gene_level_goi = gene_level[which(gene_level$gene %in% GOI), ]
-  
-  if(grepl(pattern = '^P-', x = id)){
-    gene_level_clonal = gene_level_goi[which(gene_level_goi$filter %in% c('RESCUE', 'PASS') &
-                                               gene_level_goi$cn_state != 'DIPLOID'), ]
-    gene_level_clonal$clonality = ifelse(gene_level_clonal$cf.em >= facets_out$purity * 0.8, 'clonal', 'subclonal')
-    gene_level_clonal = gene_level_clonal[which(gene_level_clonal$clonality == 'clonal'), ]
-    n = length(unique(gene_level_clonal$gene))
-    genes = paste(gene_level_clonal$gene, collapse = ',')
-    
-  } else {
-    gene_level_clonal = gene_level_goi[which(gene_level_goi$filter %in% c('RESCUE', 'PASS') &
-                                               gene_level_goi$cn_state != 'DIPLOID'), ]
-    n = length(unique(gene_level_clonal$gene))
-    genes = paste(gene_level_clonal$gene, collapse = ',')
-  }
-  
-  out = data.frame(name = 'C-000597',
-                   id = id,
-                   genes = genes,
-                   n = n,
-                   order = NA)
-  all_out = rbind(all_out, out)
-  
-}
-
-all_out$concordance = NA
-for(i in 1:nrow(all_out)){
-  concordance = length(intersect(unlist(strsplit(all_out$genes[1], split = ',')), unlist(strsplit(all_out$genes[i], split = ','))))
-  print(concordance)
-  all_out$concordance[i] = concordance / all_out$n[1]
-}
-
-second = all_out
-second$order = seq(1,3,1)
-
-
-##-----------------
-all_out = data.frame()
-for(dirs in list.dirs(path = 'C-001393/', recursive = F)){
-  id = basename(dirs)
-  load(file = list.files(pattern = '.Rdata', path = dirs, full.names = T))
-  fit$cncf$cf = NULL
-  fit$cncf$tcn = NULL
-  fit$cncf$lcn = NULL
-  fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
-  fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-  fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
-  
-  facets_out = list(
-    snps = out$jointseg,
-    segs = fit$cncf,
-    purity = as.numeric(fit$purity),
-    ploidy = as.numeric(fit$ploidy),
-    dipLogR = out$dipLogR,
-    alBalLogR = out$alBalLogR,
-    flags = out$flags,
-    em_flags = fit$emflags,
-    loglik = fit$loglik)
-  
-  gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
-  gene_level_goi = gene_level[which(gene_level$gene %in% GOI), ]
-  
-  if(grepl(pattern = '^P-', x = id)){
-    gene_level_clonal = gene_level_goi[which(gene_level_goi$filter %in% c('RESCUE', 'PASS') &
-                                               gene_level_goi$cn_state != 'DIPLOID'), ]
-    gene_level_clonal$clonality = ifelse(gene_level_clonal$cf.em >= facets_out$purity * 0.8, 'clonal', 'subclonal')
-    gene_level_clonal = gene_level_clonal[which(gene_level_clonal$clonality == 'clonal'), ]
-    n = length(unique(gene_level_clonal$gene))
-    genes = paste(gene_level_clonal$gene, collapse = ',')
-    
-  } else {
-    gene_level_clonal = gene_level_goi[which(gene_level_goi$filter %in% c('RESCUE', 'PASS') &
-                                               gene_level_goi$cn_state != 'DIPLOID'), ]
-    n = length(unique(gene_level_clonal$gene))
-    genes = paste(gene_level_clonal$gene, collapse = ',')
-  }
-  
-  out = data.frame(name = 'C-001393/',
-                   id = id,
-                   genes = genes,
-                   n = n,
-                   order = NA)
-  all_out = rbind(all_out, out)
-  
-}
-
-all_out$concordance = NA
-for(i in 1:nrow(all_out)){
-  concordance = length(intersect(unlist(strsplit(all_out$genes[1], split = ',')), unlist(strsplit(all_out$genes[i], split = ','))))
-  print(concordance)
-  all_out$concordance[i] = concordance / all_out$n[1]
-}
-
-third = all_out
-third$order = seq(1, 2, 1)
-
-
-##-----------------
-##-----------------
-all_out = data.frame()
-for(dirs in list.dirs(path = 'C-38YEPA', recursive = F)){
-  id = basename(dirs)
-  load(file = list.files(pattern = '.Rdata', path = dirs, full.names = T))
-  fit$cncf$cf = NULL
-  fit$cncf$tcn = NULL
-  fit$cncf$lcn = NULL
-  fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
-  fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-  fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
-  
-  facets_out = list(
-    snps = out$jointseg,
-    segs = fit$cncf,
-    purity = as.numeric(fit$purity),
-    ploidy = as.numeric(fit$ploidy),
-    dipLogR = out$dipLogR,
-    alBalLogR = out$alBalLogR,
-    flags = out$flags,
-    em_flags = fit$emflags,
-    loglik = fit$loglik)
-  
-  gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
-  gene_level_goi = gene_level[which(gene_level$gene %in% GOI), ]
-  
-  if(grepl(pattern = '^P-', x = id)){
-    gene_level_clonal = gene_level_goi[which(gene_level_goi$filter %in% c('RESCUE', 'PASS') &
-                                               gene_level_goi$cn_state != 'DIPLOID'), ]
-    gene_level_clonal$clonality = ifelse(gene_level_clonal$cf.em >= facets_out$purity * 0.8, 'clonal', 'subclonal')
-    gene_level_clonal = gene_level_clonal[which(gene_level_clonal$clonality == 'clonal'), ]
-    n = length(unique(gene_level_clonal$gene))
-    genes = paste(gene_level_clonal$gene, collapse = ',')
-    
-  } else {
-    gene_level_clonal = gene_level_goi[which(gene_level_goi$filter %in% c('RESCUE', 'PASS') &
-                                               gene_level_goi$cn_state != 'DIPLOID'), ]
-    n = length(unique(gene_level_clonal$gene))
-    genes = paste(gene_level_clonal$gene, collapse = ',')
-  }
-  
-  out = data.frame(name = 'C-38YEPA',
-                   id = id,
-                   genes = genes,
-                   n = n,
-                   order = NA)
-  all_out = rbind(all_out, out)
-  
-}
-
-all_out$concordance = NA
-for(i in 1:nrow(all_out)){
-  concordance = length(intersect(unlist(strsplit(all_out$genes[1], split = ',')), unlist(strsplit(all_out$genes[i], split = ','))))
-  print(concordance)
-  all_out$concordance[i] = concordance / all_out$n[1]
-}
-
-fifth = all_out
-fifth$order = seq(1, 4, 1)
+IGV_all = IGV_all[!IGV_all$tag %in% 'none', ]
+write.table(IGV_all, file = 'Data/Final/IGV_paired_samples.txt', sep = '\t', row.names = F)
 
 
 
-##-----------------
-## Visualization:
-##-----------------
-all_out = rbind(first, second, third, fourth, fifth)
-all_out$order = factor(all_out$order, levels = c(4,3,2,1))
 
-ggplot(all_out, aes(x = name, y = order, fill = concordance)) +
-  geom_tile(color = "white",
-            lwd = 1.5,
-            linetype = 1) +
-  scale_fill_gradient(
-    low = "grey85",
-    high = "red",
-    space = "Lab",
-    na.value = "grey50", name = 'CNA') +
-  coord_fixed() +
-  scale_x_discrete(position = "top", expand = c(0, 0)) +
-  theme(panel.background = element_blank())
+
+
+
+
 
 
 ##-----------------
@@ -775,67 +395,6 @@ library(cowplot)
 plot_grid(plotlist = plot_list)
 
 
-##----------------+
-## IGV-like plot for
-## paired CNA samples
-##----------------+
-sample_pairs = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'DMP_CSF_Pairs')
-
-
-##-- loop through folders
-folders = list.files(path = '.')
-folders = folders[grepl(pattern = 'C-', x = folders)]
-
-IGV_all = data.frame()
-for(i in unique(folders)){
-  try({
-    sub_dirs = list.dirs(path = i, full.names = T, recursive = F)
-    if(length(sub_dirs) == 0) next
-    else {
-      for(j in unique(sub_dirs)){
-        Rdata = list.files(pattern = '.Rdata$', path = paste0(j, '/'), full.names = T)
-        load(file = Rdata)
-        
-        #' compile the whole FACETS output
-        name = basename(j)
-        print(name)
-        
-        facets_out = list(
-          snps = out$jointseg,
-          segs = fit$cncf,
-          purity = as.numeric(fit$purity),
-          ploidy = as.numeric(fit$ploidy),
-          dipLogR = out$dipLogR,
-          alBalLogR = out$alBalLogR,
-          flags = out$flags,
-          em_flags = fit$emflags,
-          loglik = fit$loglik)
-        
-        
-        ##---- some metrics
-        IGV = facetsSuite::format_igv_seg(facets_output = facets_out, normalize = T,
-                                          sample_id = name)
-        IGV_all = rbind(IGV_all, IGV)
-      
-      }
-    }
-  })
-}
-
-IGV_all$tag = NA
-
-for(i in unique(IGV_all$ID)){
-  if(i %in% sample_pairs$DMP_CNA_first){
-    IGV_all$tag[which(IGV_all$ID == i)] = 'TUMOR'
-  } else if (i %in% sample_pairs$CSF_CNA_first){
-    IGV_all$tag[which(IGV_all$ID == i)] = 'CSF'
-  } else {
-    IGV_all$tag[which(IGV_all$ID == i)] = 'none'
-  }
-}
-
-IGV_all = IGV_all[!IGV_all$tag %in% 'none', ]
-write.table(IGV_all, file = 'Data/Final/IGV_paired_samples.txt', sep = '\t', row.names = F)
 
 
 
