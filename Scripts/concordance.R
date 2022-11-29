@@ -278,6 +278,11 @@ write.table(IGV_all, file = 'Data/Final/IGV_paired_samples.txt', sep = '\t', row
 
 
 
+##----------------+
+## Clonality plots;
+## top 5 CNAs
+##----------------+
+sample_pairs = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'DMP_CSF_Pairs')
 
 
 
