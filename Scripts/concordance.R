@@ -450,3 +450,100 @@ for(i in unique(CNA_evo_plot$gene)){
 
 library(cowplot)
 plot_grid(plotlist = plot_list, nrow = 1, ncol = 5)
+
+
+
+##----------------+
+## plot Mutations; akin
+## to CNA alterations
+##----------------+
+sample_pairs = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'DMP_CSF_Pairs')
+sample_pairs = sample_pairs[!is.na(sample_pairs$DMP_CNA_first), c('PatientID', 'DMP_MUT_first', 'CSF_MUT_first')]
+Mutations_stacked = read.csv('Data/Final/Mutations_stacked.txt', sep = '\t')
+
+DMP_muts = data.frame()
+for(i in 1:nrow(sample_pairs)){
+  if(sample_pairs$DMP_MUT_first[i] %in% Mutations_stacked$Sample_ID){
+    id = sample_pairs$DMP_MUT_first[i]
+    n_mutations = length(Mutations_stacked$Gene[which(Mutations_stacked$Sample_ID == sample_pairs$DMP_MUT_first[i])])
+    n_mutations_onc = length(Mutations_stacked$Gene[which(Mutations_stacked$Sample_ID == sample_pairs$DMP_MUT_first[i] & Mutations_stacked$ONCOGENIC %in% c('Oncogenic', 'Likely Oncogenic'))])
+  } else {
+    id = sample_pairs$DMP_MUT_first[i]
+    n_mutations = length(Mutations_stacked$Gene[which(Mutations_stacked$Sample_ID == sample_pairs$DMP_MUT_first[i])])
+    n_mutations = ifelse(length(n_mutations) == 0, 0, n_mutations)
+    n_mutations_onc = ifelse(length(n_mutations) == 0, 0,
+                             length(Mutations_stacked$Gene[which(Mutations_stacked$Sample_ID == sample_pairs$DMP_MUT_first[i] & Mutations_stacked$ONCOGENIC %in% c('Oncogenic', 'Likely Oncogenic'))]))
+  }
+  out = data.frame(id = id,
+                   n_muts_all = n_mutations,
+                   n_muts_onc = n_mutations_onc,
+                   tag = 'DMP')
+  
+  DMP_muts = rbind(DMP_muts, out)
+}
+
+
+##' CSF muts
+CSF_muts = data.frame()
+for(i in 1:nrow(sample_pairs)){
+  if(sample_pairs$CSF_MUT_first[i] %in% Mutations_stacked$Sample_ID){
+    id = sample_pairs$CSF_MUT_first[i]
+    n_mutations = length(Mutations_stacked$Gene[which(Mutations_stacked$Sample_ID == sample_pairs$CSF_MUT_first[i])])
+    n_mutations_onc = length(Mutations_stacked$Gene[which(Mutations_stacked$Sample_ID == sample_pairs$CSF_MUT_first[i] & Mutations_stacked$ONCOGENIC %in% c('Oncogenic', 'Likely Oncogenic'))])
+  } else {
+    id = sample_pairs$CSF_MUT_first[i]
+    n_mutations = length(Mutations_stacked$Gene[which(Mutations_stacked$Sample_ID == sample_pairs$CSF_MUT_first[i])])
+    n_mutations = ifelse(length(n_mutations) == 0, 0, n_mutations)
+    n_mutations_onc = ifelse(length(n_mutations) == 0, 0,
+                             length(Mutations_stacked$Gene[which(Mutations_stacked$Sample_ID == sample_pairs$CSF_MUT_first[i] & Mutations_stacked$ONCOGENIC %in% c('Oncogenic', 'Likely Oncogenic'))]))
+  }
+  out = data.frame(id = id,
+                   n_muts_all = n_mutations,
+                   n_muts_onc = n_mutations_onc,
+                   tag = 'CSF')
+  
+  CSF_muts = rbind(CSF_muts, out)
+}
+
+#' Mutations [all]
+mutations = rbind(DMP_muts, CSF_muts)
+dev.off()
+par(mfrow = c(1,2))
+
+boxplot(mutations$n_muts_all[which(mutations$tag == 'DMP')],
+        mutations$n_muts_all[which(mutations$tag == 'CSF')],
+        xaxt = 'n',
+        yaxt = 'n',
+        ylim = c(0, 20))
+axis(side = 1, at = c(1,2), labels = c('TUMOR', 'CSF'))
+axis(side = 2, at = c(1, 5, 10 , 15, 20), labels = c(1, 5, 10 , 15, 20), las = 2)
+box(lwd = 2)
+mtext(text = paste0('p-value: ', round(t.test(mutations$n_muts_all[which(mutations$tag == 'DMP')],
+                                              mutations$n_muts_all[which(mutations$tag == 'CSF')])$p.value, 3),
+                    " (Welch's t-test)"), side = 3, line = 1.3)
+mtext(text = '# Mutations [all]', side = 2, line = 2.8)
+
+#' Mutations [oncogenic]
+boxplot(mutations$n_muts_onc[which(mutations$tag == 'DMP')],
+        mutations$n_muts_onc[which(mutations$tag == 'CSF')],
+        xaxt = 'n',
+        yaxt = 'n',
+        ylim = c(0, 20))
+axis(side = 1, at = c(1,2), labels = c('TUMOR', 'CSF'))
+axis(side = 2, at = c(1, 5, 10 , 15, 20), labels = c(1, 5, 10 , 15, 20), las = 2)
+box(lwd = 2)
+mtext(text = paste0('p-value: ', round(t.test(mutations$n_muts_onc[which(mutations$tag == 'DMP')],
+                                              mutations$n_muts_onc[which(mutations$tag == 'CSF')])$p.value, 3),
+                    " (Welch's t-test)"), side = 3, line = 1.3)
+mtext(text = '# Mutations [oncogenic]', side = 2, line = 2.8)
+
+
+##----------------+
+## Variant Allele Frequency
+##----------------+
+
+
+
+
+
+
