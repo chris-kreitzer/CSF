@@ -2,6 +2,10 @@
 ## concordance analysis:
 ##-----------------
 
+## start: 11/01/2022
+## revision: 11/29/2022
+## chris-kreitzer
+
 clean()
 gc()
 .rs.restartR()
@@ -19,6 +23,42 @@ samples_alterations = read.csv('Data/Final/CSF_binary_Filtered_QC_True.txt', sep
 colnames(samples_alterations) = gsub(pattern = '\\.', replacement = '-', x = colnames(samples_alterations))
 samples_alterations = samples_alterations[,-which(names(samples_alterations) %in% c('P-0006546-T02-IM5', 'P-0006546-T03-IM6',
                                                                                     's_C_006876_S013_d08', 's_C_HLCUF1_L001_d'))]
+
+
+##----------------+
+## FACETS vs cBIO (GATK)
+## is the usage of FACETS
+## justified (overall)?
+##----------------+
+segmentation = read.csv('Data/Final/71_DMP_cBIO_segmentation.seg', sep = '\t')
+samples_checking = intersect(segmentation$ID, sample_pairs$DMP_CNA_first)
+segmentation_cBio = segmentation[which(segmentation$ID %in% samples_checking), ]
+
+##----------------+
+## Assess KDM5C CNA status
+##----------------+
+KD = data.table(chrom = 23,
+                start = 53220503,
+                end = 53254604)
+key.col = c('chrom', 'start', 'end')
+
+chromosomeX = data.frame()
+for(i in unique(copyNumbers$ID)){
+  try({
+    sample = i
+    segs = as.data.table(copyNumbers[which(copyNumbers$ID == i), ])
+    setkey(segs, chrom, start, end)
+    overlap = foverlaps(KD, segs, by.x = key.col, by.y = key.col, nomatch = 0)
+    patient_tcn = overlap$tcn.em
+    out = data.frame(sample = sample,
+                     chrom = 23,
+                     tcn = patient_tcn)
+    chromosomeX = rbind(chromosomeX, out)
+  })
+}
+
+
+
 
 alterations = data.frame()
 for(i in 1:length(samples_alterations)){
@@ -298,8 +338,6 @@ for(i in 1:nrow(sample_pairs)){
     
     #' load Facet Fit
     load(file = Rfile)
-    fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-    fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
     
     #' compile the whole FACETS output
     name = DMP
@@ -318,13 +356,13 @@ for(i in 1:nrow(sample_pairs)){
     
     gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
     
-    for(gene in GOI){
-      print(gene)
-      if(gene %in% unique(gene_level$gene)){
-        gene_cnlr = gene_level[which(gene_level$gene == gene), 'median_cnlr_seg']
+    for(j in GOI){
+      print(j)
+      if(j %in% unique(gene_level$gene)){
+        gene_cnlr = gene_level[which(gene_level$gene == j), 'median_cnlr_seg']
         gene_cnlr = ifelse(is.na(gene_cnlr), NA, gene_cnlr)
         out = data.frame(id = name,
-                         gene = gene,
+                         gene = j,
                          gene_cnlr = gene_cnlr)
       } else next
       DMP_top5 = rbind(DMP_top5, out)
@@ -346,9 +384,7 @@ for(i in 1:nrow(sample_pairs)){
     
     #' load Facet Fita
     load(file = Rfile)
-    fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-    fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
-    
+
     #' compile the whole FACETS output
     name = CSF
     print(name)
@@ -366,13 +402,13 @@ for(i in 1:nrow(sample_pairs)){
     
     gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
     
-    for(gene in GOI){
-      print(gene)
-      if(gene %in% unique(gene_level$gene)){
-        gene_cnlr = gene_level[which(gene_level$gene == gene), 'median_cnlr_seg']
+    for(j in GOI){
+      print(j)
+      if(j %in% unique(gene_level$gene)){
+        gene_cnlr = gene_level[which(gene_level$gene == j), 'median_cnlr_seg']
         gene_cnlr = ifelse(is.na(gene_cnlr), NA, gene_cnlr)
         out = data.frame(id = name,
-                         gene = gene,
+                         gene = j,
                          gene_cnlr = gene_cnlr)
       } else next
       CSF_top5 = rbind(CSF_top5, out)
