@@ -336,6 +336,9 @@ for(i in 1:nrow(sample_pairs)){
 }
 
 DMP_top5$tag = 'DMP'
+DMP_merge = merge(sample_pairs[, c('PatientID', 'DMP_CNA_first')],
+                  DMP_top5, by.x = 'DMP_CNA_first', by.y = 'id', all.y = T)
+
 
 ##----------------+
 ## same for CSF samples
@@ -382,6 +385,12 @@ for(i in 1:nrow(sample_pairs)){
 }
 
 CSF_top5$tag = 'CSF'
+CSF_merge = merge(sample_pairs[, c('PatientID', 'CSF_CNA_first')],
+                  CSF_top5, by.x = 'CSF_CNA_first', by.y = 'id', all.y = T)
+
+
+merged = merge(DMP_merge, CSF_merge, by = c('PatientID', 'gene'))
+write.table(merged, file = 'Data/Final/DMP_CSF_CnLR_pairs.txt', sep = '\t', row.names = F)
 
 
 ##----------------+
@@ -540,11 +549,46 @@ mtext(text = '# Mutations [oncogenic]', side = 2, line = 2.8)
 
 
 ##----------------+
-## Variant Allele Frequency
+## checking CDKN2A 
+## divergence; assumption 
+## that it is caused by purity
+## issues
 ##----------------+
-unt = read.csv('~/Documents/MSKCC/MSKCC_SlackFiles/Untitled.txt', sep = '\t')
+matched_cnlr = read.csv('Data/Final/DMP_CSF_CnLR_pairs.txt', sep = '\t')
+matched_CDKN2A = matched_cnlr[which(matched_cnlr$gene == 'CDKN2A'), ]
 
+ggplot(matched_CDKN2A, aes(x = gene_cnlr.x, y = gene_cnlr.y, label = PatientID)) +
+  geom_jitter() +
+  geom_text(size = 2, hjust = 1.2) +
+  geom_abline(slope = 1, intercept = 0, linetype = 'dashed') +
+  scale_y_continuous(limits = c(-5, 1)) +
+  scale_x_continuous(limits = c(-5, 1)) +
+  theme(aspect.ratio = 1,
+        panel.border = element_rect(fill = NA,
+                                    linewidth = 1.5, 
+                                    color = 'black'),
+        axis.text = element_text(size = 10, color = 'black')) +
+  labs(x = 'Tumor [CnLR]', y = 'CSF [CnLR]', title = 'CDKN2A')
 
+##----------------+
+## may purity explain 
+## the missing CDKN2A deletions
+##----------------+
+check_purity = matched_CDKN2A$CSF_CNA_first[which(matched_CDKN2A$gene_cnlr.x < -1.5 &
+                                                    matched_CDKN2A$gene_cnlr.y > -0.5)]
 
+sample_original = readxl::read_excel('Data/Final/SUBHI SPREADSHEET _USE.xlsx', sheet = 'Database')
+sample_original_pass = sample_original[which(sample_original$FACETS_QC == 'pass'), ]
 
-
+Purity = sample_original_pass[which(sample_original_pass$`Sample ID` %in% check_purity), c('Sample ID', 'Purity')]
+Purity$Purity = as.numeric(as.character(Purity$Purity))
+plot(density(Purity$Purity), 
+     lwd = 2,
+     yaxt = 'n',
+     xlab = '',
+     ylab = '',
+     main = '')
+box(lwd = 2)
+mtext(side = 1, text = 'Purity', line = 2)
+mtext(side = 2, text = 'Density', line = 1)
+mtext(side = 3, text = 'Density plot [Purity] of encircled samples', line = 1, adj = 0)
