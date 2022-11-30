@@ -94,6 +94,14 @@ for(i in unique(folders)){
           em_flags = fit$emflags,
           loglik = fit$loglik)
         
+        gene_level = facetsSuite::gene_level_changes(facets_output = facets_out, genome = 'hg19')
+        gene_level = gene_level[which(gene_level$filter %in% c('PASS', 'RESCUE')), ]
+        AMP_gene = table(gene_level$cn_state)['AMP'][[1]]
+        Homo_gene = table(gene_level$cn_state)['HOMDEL'][[1]]
+        Het_gene = table(gene_level$cn_state)[which(names(table(gene_level$cn_state)) %in% c('CNLOH', 'HETLOSS', 'DIPLOID or CNLOH'))]
+        Het_gene = sum(Het_gene)
+        
+        #' genome wide numbers
         ploidy = facets_fit_qc(facets_output = facets_out)$ploidy
         wgd = facets_fit_qc(facets_output = facets_out)$wgd
         fga = facets_fit_qc(facets_output = facets_out)$fga
@@ -106,10 +114,14 @@ for(i in unique(folders)){
                          wgd = wgd,
                          fga = fga,
                          n_amps = n_amps,
+                         n_amps_gene = AMP_gene,
                          n_homdels = n_homdels,
-                         n_loh = n_loh)
+                         n_homdels_gene = Homo_gene,
+                         n_loh = n_loh,
+                         n_loh_gene = Het_gene)
         
         all_out = rbind(all_out, out)
+        rm(gene_level, AMP_gene, Homo_gene, Het_gene, ploidy, wgd, fga, n_amps, n_homdels, n_loh, facets_out)
       }
     }
   })
@@ -172,51 +184,51 @@ mtext(text = 'Purity', side = 2, line = 2.8)
 ##----------------+
 ## some other plots;
 ##----------------+
-##' n_AMP
+##' n_AMP; per gene
 dev.off()
 par(mfrow = c(1,3))
-boxplot(passed_samples$n_amps.y[which(passed_samples$plot == 'DMP')],
-        passed_samples$n_amps.y[which(passed_samples$plot == 'CSF')],
+boxplot(passed_samples$n_amps_gene[which(passed_samples$plot == 'DMP')],
+        passed_samples$n_amps_gene[which(passed_samples$plot == 'CSF')],
         xaxt = 'n',
         yaxt = 'n',
-        ylim = c(0, 10))
+        ylim = c(0, 40))
 axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
-axis(side = 2, at = c(0, 5, 10), labels = c(1, 5, 10), las = 2)
+axis(side = 2, at = seq(0, 40, 5), labels = seq(0, 40, 5), las = 2)
 box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_amps.y[which(passed_samples$plot == 'DMP')],
-                                              passed_samples$n_amps.y[which(passed_samples$plot == 'CSF')])$p.value, 3), 
+mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_amps_gene[which(passed_samples$plot == 'DMP')],
+                                              passed_samples$n_amps_gene[which(passed_samples$plot == 'CSF')])$p.value, 3), 
                     " (Welch's t-test)"), side = 3, line = 1.3)
 mtext(text = '#AMPs; genome-wide', side = 2, line = 2.8)
 
 
 ##' n_homo-deletions
-boxplot(passed_samples$n_homdels[which(passed_samples$plot == 'DMP')],
-        passed_samples$n_homdels[which(passed_samples$plot == 'CSF')],
+boxplot(passed_samples$n_homdels_gene[which(passed_samples$plot == 'DMP')],
+        passed_samples$n_homdels_gene[which(passed_samples$plot == 'CSF')],
         xaxt = 'n',
         yaxt = 'n',
         ylim = c(0, 10))
 axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
 axis(side = 2, at = c(0, 5, 10), labels = c(1, 5, 10), las = 2)
 box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_homdels[which(passed_samples$plot == 'DMP')],
-                                              passed_samples$n_homdels[which(passed_samples$plot == 'CSF')])$p.value, 3), 
+mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_homdels_gene[which(passed_samples$plot == 'DMP')],
+                                              passed_samples$n_homdels_gene[which(passed_samples$plot == 'CSF')])$p.value, 3), 
                     " (Welch's t-test)"), side = 3, line = 1.3)
-mtext(text = '#Deep Deletions; genome-wide', side = 2, line = 2.8)
+mtext(text = '#Homozygous deletions; genome-wide', side = 2, line = 2.8)
 
 
 ##' n_LOH
-boxplot(passed_samples$n_loh[which(passed_samples$plot == 'DMP')],
-        passed_samples$n_loh[which(passed_samples$plot == 'CSF')],
+boxplot(passed_samples$n_loh_gene[which(passed_samples$plot == 'DMP')],
+        passed_samples$n_loh_gene[which(passed_samples$plot == 'CSF')],
         xaxt = 'n',
         yaxt = 'n',
-        ylim = c(0, 30))
+        ylim = c(0, 600))
 axis(side = 1, at = c(1, 2), labels = c('TUMOR', 'CSF'))
-axis(side = 2, at = c(0, 5, 10, 15, 20, 25, 30), labels = c(1, 5, 10, 15, 20, 25, 30), las = 2)
+axis(side = 2, at = seq(0, 600, 100), labels = seq(0, 600, 100), las = 2)
 box(lwd = 2)
-mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_loh[which(passed_samples$plot == 'DMP')],
-                                              passed_samples$n_loh[which(passed_samples$plot == 'CSF')])$p.value, 3), 
+mtext(text = paste0('p-value: ', round(t.test(passed_samples$n_loh_gene[which(passed_samples$plot == 'DMP')],
+                                              passed_samples$n_loh_gene[which(passed_samples$plot == 'CSF')])$p.value, 3), 
                     " (Welch's t-test)"), side = 3, line = 1.3)
-mtext(text = '#LOH; genome-wide', side = 2, line = 2.8)
+mtext(text = '#Heterozygous loss; genome-wide', side = 2, line = 2.8)
 
 
 ##----------------+
