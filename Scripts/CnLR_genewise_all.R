@@ -103,4 +103,17 @@ write.table(all_out, file = 'Data/Final/CnLR_genewise_all.txt', sep = '\t')
 
 
 
+##----------------+
+## What is better suited 
+## for comparison and plots
+##----------------+
+
+
+
+
+
+
+
+
+
 
