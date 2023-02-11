@@ -1,3 +1,4 @@
+##-- error in file
 snp_files = read.csv('~/CSF/sample_match.txt', sep = '\t')
 snp_files = snp_files[which(snp_files$PATIENT_ID %in% c('C-50463R', 'C-VFL0PR')), ]
 output_path = '~/CSF/'
