@@ -7,18 +7,28 @@ library(facetsSuite)
 facets = read.csv('~/Documents/MSKCC/05_IMPACT40K/Data/Signed_out/Facets_annotated.cohort.txt', sep = '\t')
 GOIs = c('CDKN2A','CDK4','CDK6','PTEN','EGFR','PDGFRA','KIT','KDR','MET','MDM2','MDM4','RB1','NF1','TP53','FGF4', 'FGF19')
 all_files = list.files('.', full.names = T, recursive = T)
-
+err.thresh = 10
+del.thresh = 10
 
 ##-- START
-basename(all_files[27])
-samplePath = all_files[27]
-sampleid = 'P-0005361-T01-IM5_P-0005361-N01-IM5'
+basename(all_files[258])
+samplePath = all_files[258]
+sampleid = 's_C_4173R4_N901_dZ_IM5.rg.md.abra.printreads__s_C_4173R4_T901_dZ_IM5'
 
 countmatrix = facetsSuite::read_snp_matrix(input_file = samplePath)
+pileup = read.csv(file = samplePath, sep = ',')
+ii = which(pileup$File1E <= err.thresh & pileup$File1D <= del.thresh & pileup$File2E <= err.thresh & pileup$File2D <= del.thresh)
+rcmat = pileup[ii, 1:2]
+rcmat$NOR.DP = pileup$File1R[ii] + pileup$File1A[ii]
+rcmat$NOR.RD = pileup$File1R[ii]
+rcmat$TUM.DP = pileup$File2R[ii] + pileup$File2A[ii]
+rcmat$TUM.RD = pileup$File2R[ii]
+countmatrix = rcmat
+
 countmatrix = countmatrix[,c(1,2,3,5,4,6)]
 out = facetsSuite::run_facets(read_counts = countmatrix, 
                               cval = 100,
-                              dipLogR = -0.03,
+                              dipLogR = NULL,
                               snp_nbhd = 250,
                               seed = 100)
 i = facetsSuite::cnlr_plot(out, return_object = T)
@@ -36,8 +46,8 @@ out$dipLogR
 
 ##-- FINAL
 fit = facetsSuite::run_facets(read_counts = countmatrix, 
-                              cval = 90,
-                              dipLogR = -0.03,
+                              cval = 50,
+                              dipLogR = -0.0406,
                               snp_nbhd = 250,
                               seed = 100)
 i = facetsSuite::cnlr_plot(fit, return_object = T)
