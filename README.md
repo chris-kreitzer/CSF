@@ -10,3 +10,8 @@
 ratio between overlaps and non-overlaps perhaps
 
 new test case: P-0009511-T02/T03
+
+CSF-resources: (02/08/2023):
+- sample-pileup files (countmatrices): /juno/work/ci/songt/share/nandakus/pileups
+- sample-bam files (T/N): /juno/res/ci/share/schultz/GBM
+- CCS: FacetsFits: /juno/work/ccs/shared/resources/impact/facets/all/
