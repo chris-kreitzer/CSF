@@ -1,19 +1,30 @@
+##----------------+
+## FACETS fits for Tumor/CSF samples
+## Check all_files - location + saving
+##----------------+
+##
+## start: 02/11/2023
+## revision: 02/22/2023
+## chris-kreitzer
+
+
+
 setwd('~/Documents/MSKCC/11_CSF/01_countmatrices/')
 library(patchwork)
 library(facets)
 library(pctGCdata)
 library(facetsSuite)
 
-facets = read.csv('~/Documents/MSKCC/05_IMPACT40K/Data/Signed_out/Facets_annotated.cohort.txt', sep = '\t')
 GOIs = c('CDKN2A','CDK4','CDK6','PTEN','EGFR','PDGFRA','KIT','KDR','MET','MDM2','MDM4','RB1','NF1','TP53','FGF4', 'FGF19')
-all_files = list.files('.', full.names = T, recursive = T)
+all_files = list.files('../03_missing/CSFData1/', full.names = T, recursive = T)
 err.thresh = 10
 del.thresh = 10
 
+
 ##-- START
-basename(all_files[258])
-samplePath = all_files[258]
-sampleid = 's_C_4173R4_N901_dZ_IM5.rg.md.abra.printreads__s_C_4173R4_T901_dZ_IM5'
+basename(all_files[109])
+samplePath = all_files[109]
+sampleid = 's_PN_FROZEN_07289_H_cas.rg.md.abra.printreads__s_C_JLAH2A_S001_d01'
 
 countmatrix = facetsSuite::read_snp_matrix(input_file = samplePath)
 pileup = read.csv(file = samplePath, sep = ',')
@@ -47,7 +58,7 @@ out$dipLogR
 ##-- FINAL
 fit = facetsSuite::run_facets(read_counts = countmatrix, 
                               cval = 50,
-                              dipLogR = -0.0406,
+                              dipLogR = 0.16,
                               snp_nbhd = 250,
                               seed = 100)
 i = facetsSuite::cnlr_plot(fit, return_object = T)
@@ -72,6 +83,13 @@ cncf = fit$segs
 png_a = i/ii/iii/iv +
   plot_layout(heights = c(1,1,1,0.25))
 IGV = facetsSuite::format_igv_seg(facets_output = fit, sample_id = sampleid, normalize = T)
+
+
+# dir.create(path = paste0('../01_countmatrices/', sub('^(.*[\\/])',"", samplePath)))
+# dir_new = paste0('../01_countmatrices/', sub('^(.*[\\/])',"", samplePath))
+# system(command = paste0('mv ', samplePath, ' ', dir_new))
+
+
 write.table(x = gene, file = paste0(sub('^(.*[\\/])',"", samplePath), '/', sampleid, '_gene_level.txt'), 
             sep = '\t', quote = F, row.names = F)
 write.table(x = cncf, file = paste0(sub('^(.*[\\/])',"", samplePath), '/', sampleid, '_cncf.txt'), 
@@ -85,5 +103,5 @@ saveRDS(object = fit, file = paste0(sub('^(.*[\\/])',"", samplePath), '/', sampl
 ggsave(filename = paste0(sub('^(.*[\\/])',"", samplePath), '/', sampleid, '.png'), 
        plot = png_a, device = 'png')
 
-rm(out, fit, qc, cncf, gene, IGV, png_a)
+rm(out, fit, qc, cncf, gene, IGV, png_a, countmatrix, pileup, rcmat)
 
