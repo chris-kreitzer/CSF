@@ -201,3 +201,104 @@ rm(fit, countmatrix, i, ii, iii, iv, diplogr, segs, gene, gene_new, cnlr_distrib
 
 
 
+##----------------+
+## make summary about the reduced fits
+##----------------+
+reduced_facets = database[which(database$Fit == 'reduced'), ]
+reduced_facets$id = basename(reduced_facets$FacetsCountfile)
+
+reduced_out = data.frame()
+for(i in 1:nrow(reduced_facets)){
+  files = list.files(path = paste0(reduced_facets$id[i], '/adjusted'), pattern = 'gene_level.txt$', full.names = T)
+  genefile = read.csv(file = files, sep = '\t')
+  oncoCNA = paste(genefile$gene[which(genefile$call %in% c(-2, 2))], collapse = ',')
+  oncoCNA = ifelse(oncoCNA == "", NA, oncoCNA)
+  
+  out = data.frame(id = reduced_facets$id[i],
+                   arm_7p = NA,
+                   arm_7q = NA,
+                   arm_10p = NA,
+                   arm_10q = NA,
+                   purity = NA,
+                   ploidy = NA,
+                   wgd = NA,
+                   fga = NA,
+                   oncogenic_CNA = oncoCNA)
+  
+  reduced_out = rbind(reduced_out, out)
+  
+}
+
+write.table(x = reduced_out, file = '../00_Data/REDUCED_FACETS_geneLevelSummary.txt', sep = '\t', row.names = F, quote = F)
+
+
+
+
+##----------------+
+## fully annotated the excel table
+##----------------+
+database = readxl::read_excel('../00_Data/Database_Final+Feb23_ck_2023.xlsx', sheet = 1)
+database$id = basename(database$FacetsCountfile)
+
+full = read.csv('../00_Data/FULL_FACETS_sampleSummary.txt', sep = '\t')
+reduced = read.csv('../00_Data/REDUCED_FACETS_geneLevelSummary.txt', sep = '\t')
+Npossible = database[which(database$Fit %in% c('N/Possible', 'N/Avail')), ]
+Npossible = data.frame(id = basename(Npossible$FacetsCountfile),
+                       arm_7p = NA,
+                       arm_7q = NA,
+                       arm_10p = NA,
+                       arm_10q = NA,
+                       purity = NA,
+                       ploidy = NA,
+                       wgd = NA,
+                       fga = NA,
+                       oncogenic_CNA = NA)
+
+combined_dfs = rbind(full, reduced, Npossible)
+database = merge(database, combined_dfs, by = 'id', all.x = T)
+
+
+write.table(x = database, file = '../00_Data/Database_Final+Feb24_ck_2023.txt', sep = '\t', row.names = F, quote = F)
+
+
+
+
+
+
+##----------------+
+## Check if all cBIO annotations
+## are fetched by Facets;
+##----------------+
+database = readxl::read_excel('../00_Data/Database_Final+Feb24_ck_2023.xlsx', sheet = 1)
+dmp = read.csv('../00_Data/data_CNA.oncokb.txt.gz', sep = '\t')
+
+database$cBio_CNA = NA
+c_ids = database$`Sample ID`[grep(pattern = '^P-00.*', database$`Sample ID`)]
+
+for(i in 1:length(c_ids)){
+  print(i)
+  if(c_ids[i] %in% dmp$SAMPLE_ID){
+    dmp_cna = dmp[which(dmp$SAMPLE_ID == c_ids[i]), ]
+    dmp_cna = dmp_cna[which(dmp_cna$HUGO_SYMBOL %in% GOIs), ]
+    onco_cna = ifelse(nrow(dmp_cna) == 0, NA,
+                      paste(dmp_cna$HUGO_SYMBOL, collapse = ','))
+    database$cBio_CNA[which(database$`Sample ID` ==  c_ids[i])] = onco_cna
+  } else {
+    database$cBio_CNA[which(database$`Sample ID` == c_ids[i])] = NA
+  }
+}
+
+database$Oncogenic_SCNA = NA
+for(i in 1:nrow(database)){
+  database$Oncogenic_SCNA[i] = paste(union(unlist(strsplit(database$oncogenic_CNA[i], ",")), 
+                                        unlist(strsplit(database$cBio_CNA[i], ","))), collapse = ',')
+  cna_substring = unlist(strsplit(database$Oncogenic_SCNA[i], ','))
+  cna_substring = cna_substring[!cna_substring %in% 'NA']
+  database$Oncogenic_SCNA[i] = paste(cna_substring, collapse = ',')
+}
+
+
+write.table(x = database, file = '../00_Data/database.txt', sep = '\t', row.names = F, quote = F)
+
+
+#' out
