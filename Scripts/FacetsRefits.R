@@ -5,6 +5,9 @@
 ## - rework them, and get absolute numbers
 ## based on cnlr_median_clust
 ##----------------+
+##
+## 02/25/2023
+## chris-kreitzer
 
 
 clean()
@@ -231,6 +234,27 @@ for(i in 1:nrow(reduced_facets)){
 
 write.table(x = reduced_out, file = '../00_Data/REDUCED_FACETS_geneLevelSummary.txt', sep = '\t', row.names = F, quote = F)
 
+
+##----------------+
+## gene level summary reduced fits
+##----------------+
+setwd('~/Documents/MSKCC/11_CSF/01_countmatrices/')
+database = readxl::read_excel('../00_Data/Database_Final+Feb24_ck_work_2023.xlsx', sheet = 1)
+database$id = basename(database$FacetsCountfile)
+
+reduced_out = data.frame()
+for(i in 1:nrow(database)){
+  print(i)
+  files = list.files(path = paste0(database$id[i], '/adjusted'), pattern = 'gene_level.txt$', full.names = T)
+  if(length(files) != 0){
+    genefile = read.csv(file = files, sep = '\t')
+    genefile$id = database$id[i]
+  } else next
+  
+  reduced_out = rbind(reduced_out, genefile)
+}
+
+write.table(x = reduced_out, file = '../00_Data/REDUCED_FACETS_Sample_Summary.txt', sep = '\t', row.names = F, quote = F)
 
 
 
