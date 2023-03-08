@@ -15,3 +15,5 @@ CSF-resources: (02/08/2023):
 - sample-pileup files (countmatrices): /juno/work/ci/songt/share/nandakus/pileups
 - sample-bam files (T/N): /juno/res/ci/share/schultz/GBM
 - CCS: FacetsFits: /juno/work/ccs/shared/resources/impact/facets/all/
+
+MADSEQ on CSF (ref_depth)
