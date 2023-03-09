@@ -17,3 +17,4 @@ CSF-resources: (02/08/2023):
 - CCS: FacetsFits: /juno/work/ccs/shared/resources/impact/facets/all/
 
 MADSEQ on CSF (ref_depth)
+CDKN2A - dipLogR
