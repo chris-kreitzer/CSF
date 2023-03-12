@@ -70,6 +70,8 @@ rr = ggplot(samples_keep, aes(x = ORDER, y = PATIENT_ID, fill = TYPE)) +
         axis.text = element_text(colour = 'black')) +
   labs(y = '')
 
+
+
 ##----------------+
 ## Fraction CNAs
 ##----------------+
