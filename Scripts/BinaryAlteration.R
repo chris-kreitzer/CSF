@@ -91,6 +91,7 @@ missing = missing[,c('sample', 'gene', 'final')]
 full_annotation = rbind(facetscbio, missing)
 colnames(full_annotation)[3] = 'call'
 cohort_out = rbind(full_annotation, csf)
+write.table(x = cohort_out, file = '00_Data/Cohort_out.txt', sep = '\t', row.names = F, quote = F)
 
 
 
