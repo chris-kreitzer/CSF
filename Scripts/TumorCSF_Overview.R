@@ -78,19 +78,18 @@ nMutations = nMutations + annotate(geom = 'text', x = 1.5, y = 28, label = 'P=0.
 
 
 #' non-oncogenic mutations
-nononc_Mutations = ggplot(mutations_out, aes(x = type, y = non_oncogenic)) +
+nononc_Mutations = ggplot(mutations_out, aes(x = type, y = log10(non_oncogenic + 1))) +
   geom_boxplot(outlier.colour = 'white') +
   geom_jitter(width = 0.2, size = 0.5) +
   theme_std(base_size = 14, base_line_size = 0.1) +
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0, 250)) +
+  scale_y_continuous(expand = c(0,0)) +
   panel_border(size = 2, color = 'black') +
   theme(aspect.ratio = 1.5,
         axis.ticks.y = element_line(linewidth = 0.85)) +
-  labs(y = '# Mutations all', x = '')
+  labs(y = '# Mutations all [log10]', x = '')
 
 
-nononc_Mutations = nononc_Mutations + annotate(geom = 'text', x = 1.5, y = 230, label = 'P=0.117')
+nononc_Mutations = nononc_Mutations + annotate(geom = 'text', x = 1.5, y = 2.5, label = 'P=0.117')
 
 mutations = nMutations + nononc_Mutations
 ggsave_golden(filename = '05_Plots/Mutations_TumorCSF.pdf', plot = mutations, width = 8)
