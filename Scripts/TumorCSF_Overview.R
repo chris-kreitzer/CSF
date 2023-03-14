@@ -12,7 +12,6 @@
 
 clean()
 setwd('~/Documents/MSKCC/11_CSF/')
-source('~/Documents/GitHub/DryClean_Facets/Scripts/CnLR_plot.R')
 source('~/Documents/GitHub/Y_chromosome_loss/PanCancer/Scripts/UtilityFunctions.R')
 source('~/Documents/MSKCC/11_CSF/02_Scripts/CnLR_plot.R')
 
@@ -480,6 +479,7 @@ for(i in 1:nrow(cdkn2a_pairs)){
 
 
 
+
 ##-- CnLR plots
 a = readRDS('01_countmatrices/countsMerged____P-0008244-T01-IM5_P-0008244-N01-IM5.dat.gz/P-0008244-T01-IM5_P-0008244-N01-IM5.rds')
 b = readRDS('01_countmatrices/s_C_002114_NCAS_dZ_IM5.rg.md.abra.printreads--s_C_002114_S003_d.rg.md.abra.printreads.pileup/s_C_002114_NCAS_dZ_IM5.rg.md.abra.printreads--s_C_002114_S003_d.rds')
@@ -491,6 +491,8 @@ b_plot = cnlr_plot(facets_data = b, highlight_gene = 'CDKN2A')
 b_plot = b_plot + labs(title = 's_C_002114_S003')
 
 dip_cdkn2a = a_plot / b_plot
+
+
 ggsave_golden(filename = '05_Plots/CDKN2A_diploid.pdf', plot = dip_cdkn2a, width = 10)
 
 
@@ -510,11 +512,15 @@ csf1 = ggplot(cov, aes(x = normed_depth)) +
   scale_y_continuous(expand = c(0.01, 0)) +
   theme_std() +
   facet_grid(~seqnames) +
-  theme(axis.text.x = element_text(angle = 90),
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
         axis.text.y = element_blank()) +
-  labs(y = 'Density') +
+  labs(y = 'Density', x = 'Normalized Seq. Depth') +
   panel_border(size = 0.75, color = 'grey85')
   
+
+
+
+
 tumor = read.csv('04_MADSEQ/TumorCSF/P-0008244-T01-IM5_normed_depth.txt', sep = '\t')
 tumor = tumor[which(tumor$seqnames %in% c('chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7',
                                       'chr8', 'chr9', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14',
@@ -530,14 +536,14 @@ tumor1 = ggplot(tumor, aes(x = normed_depth)) +
   scale_y_continuous(expand = c(0.01, 0)) +
   theme_std() +
   facet_grid(~seqnames) +
-  theme(axis.text.x = element_text(angle = 90),
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
         axis.text.y = element_blank()) +
-  labs(y = 'Density') +
+  labs(y = 'Density', x = '') +
   panel_border(size = 0.75, color = 'grey85')
 
 
-coverage = tumor1 / csf1
-ggsave_golden(filename = '05_Plots/CDKN2A_diploid_coverage.pdf', plot = coverage, width = 12)
+CDKN2A_diploid = a_plot / b_plot / tumor1 / csf1
+ggsave_golden(filename = '05_Plots/CDKN2A_diploid_coverage.pdf', plot = CDKN2A_diploid, width = 12)
 
 
 
@@ -568,14 +574,15 @@ cov$seqnames = factor(cov$seqnames, levels = c('chr1', 'chr2', 'chr3', 'chr4', '
                                                'chr15', 'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21', 'chr22'))
 csf1 = ggplot(cov, aes(x = normed_depth)) + 
   geom_density(color = "black", fill = "white") +
-  #scale_x_continuous(breaks = c(0, 100, 200),
-  #                   labels = c(0, 100, 200)) +
+  scale_x_continuous(limits = c(0, 1000),
+                     breaks = c(0, 500, 1000),
+                     labels = c(0, 500, 1000)) +
   scale_y_continuous(expand = c(0.01, 0)) +
   theme_std() +
   facet_grid(~seqnames) +
-  theme(axis.text.x = element_text(angle = 90),
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
         axis.text.y = element_blank()) +
-  labs(y = 'Density') +
+  labs(y = 'Density', x = 'Normalized Seq. Depth') +
   panel_border(size = 0.75, color = 'grey85')
 
 
@@ -589,19 +596,21 @@ tumor$seqnames = factor(tumor$seqnames, levels = c('chr1', 'chr2', 'chr3', 'chr4
 
 tumor1 = ggplot(tumor, aes(x = normed_depth)) + 
   geom_density(color = "black", fill = "white") +
-  #scale_x_continuous(breaks = c(0, 750, 1500),
-  #                   labels = c(0, 750, 1500)) +
+  scale_x_continuous(breaks = c(0, 2500, 5000),
+                     limits = c(0, 5000),
+                     labels = c(0, 2500, 5000)) +
   scale_y_continuous(expand = c(0.01, 0)) +
   theme_std() +
   facet_grid(~seqnames) +
-  theme(axis.text.x = element_text(angle = 90),
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
         axis.text.y = element_blank()) +
-  labs(y = 'Density') +
+  labs(y = 'Density', x = '') +
   panel_border(size = 0.75, color = 'grey85')
 
 
 coverage = tumor1 / csf1
-ggsave_golden(filename = '05_Plots/CDKN2A_deepDeletion_coverage.pdf', plot = coverage, width = 12)
+CDKN2A_deepDeletion = a_plot / b_plot / tumor1 / csf1
+ggsave_golden(filename = '05_Plots/CDKN2A_deepDeletion_coverage.pdf', plot = CDKN2A_deepDeletion, width = 12)
 
 
 ##----------------+
