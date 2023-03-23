@@ -20,3 +20,4 @@ MADSEQ on CSF (ref_depth) - excluding low complixity regions
 CDKN2A - dipLogR
 High Level CnLr with Focality with Facets
 Allison meeting - CDKN2A and EGFR (correlation)
+https://meetmsk.zoom.us/rec/share/fK8RGek6EQC501WG6sfjsodWM6Txfz4qaMM-iT2seqjU0lovcEaAX33ilGq7BuYV.wYUixftupUMzzSZm
