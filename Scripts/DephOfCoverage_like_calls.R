@@ -210,37 +210,3 @@ length(tumor_out$gene[which(tumor_out$gene == 'EGFR' & tumor_out$call == '2')]) 
 
 
 
-
-
-
-
-
-
-
-
-
-GBM/07289_O/1.1.2/20220329_19_53_495980/bam/s_C_RT2H2R_N901_dZ_IM6.rg.md.abra.printreads.bam
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
