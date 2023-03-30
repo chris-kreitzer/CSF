@@ -23,4 +23,7 @@ Allison meeting - CDKN2A and EGFR (correlation)
 
 https://meetmsk.zoom.us/rec/share/fK8RGek6EQC501WG6sfjsodWM6Txfz4qaMM-iT2seqjU0lovcEaAX33ilGq7BuYV.wYUixftupUMzzSZm   
 
-CDKN2A deep deletions in CSF samples
+CDKN2A deep deletions in CSF samples   
+
+
+High level / Facets / Nic Socci -- concordance!
