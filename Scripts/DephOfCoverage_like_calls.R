@@ -75,7 +75,7 @@ for(i in unique(CSF_samples$Sample.ID)){
 }
   
  
-length(csf_out$id[which(csf_out$gene == 'CDKN2A' & csf_out$call == '-2')]) / length(csf_out$gene[which(csf_out$gene == 'CDKN2A')])
+length(unique(csf_out$id[which(csf_out$gene == 'CDKN2A' & csf_out$call == '-2')])) / length(csf_out$gene[which(csf_out$gene == 'CDKN2A')])
 ## 24% CDKN2A
 length(csf_out$id[which(csf_out$gene == 'EGFR' & csf_out$call == '2')]) / length(csf_out$gene[which(csf_out$gene == 'EGFR')])
 ## 45% EGFR
