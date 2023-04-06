@@ -58,6 +58,7 @@ qc$purity
 qc$wgd
 out$dipLogR
 
+
 ##-- FINAL
 fit = facetsSuite::run_facets(read_counts = countmatrix, 
                               cval = 50,
