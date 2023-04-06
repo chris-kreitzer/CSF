@@ -29,22 +29,24 @@ samplePath = all_files[1]
 sampleid = 'countsMerged____P-0063687-T01-IM7_P-0063687-N01-IM7'
 
 
-countmatrix = facetsSuite::read_snp_matrix(input_file = samplePath)
-pileup = read.csv(file = samplePath, sep = ',')
-ii = which(pileup$File1E <= err.thresh & pileup$File1D <= del.thresh & pileup$File2E <= err.thresh & pileup$File2D <= del.thresh)
-rcmat = pileup[ii, 1:2]
-rcmat$NOR.DP = pileup$File1R[ii] + pileup$File1A[ii]
-rcmat$NOR.RD = pileup$File1R[ii]
-rcmat$TUM.DP = pileup$File2R[ii] + pileup$File2A[ii]
-rcmat$TUM.RD = pileup$File2R[ii]
-countmatrix = rcmat
+countmatrix = facetsSuite::read_snp_matrix(input_file = 'countsMerged____P-0000651-T01-IM3_P-0000651-N01-IM3.dat.gz/countsMerged____P-0000651-T01-IM3_P-0000651-N01-IM3.dat.gz')
+# pileup = read.csv(file = samplePath, sep = ',')
+# ii = which(pileup$File1E <= err.thresh & pileup$File1D <= del.thresh & pileup$File2E <= err.thresh & pileup$File2D <= del.thresh)
+# rcmat = pileup[ii, 1:2]
+# rcmat$NOR.DP = pileup$File1R[ii] + pileup$File1A[ii]
+# rcmat$NOR.RD = pileup$File1R[ii]
+# rcmat$TUM.DP = pileup$File2R[ii] + pileup$File2A[ii]
+# rcmat$TUM.RD = pileup$File2R[ii]
+# countmatrix = rcmat
 
 countmatrix = countmatrix[,c(1,2,3,5,4,6)]
+
 out = facetsSuite::run_facets(read_counts = countmatrix, 
                               cval = 100,
-                              dipLogR = NULL,
+                              dipLogR = 0,
                               snp_nbhd = 250,
                               seed = 100)
+
 i = facetsSuite::cnlr_plot(out, return_object = T)
 ii = facetsSuite::valor_plot(out, return_object = T)
 iii = facetsSuite::icn_plot(out, return_object = T)
