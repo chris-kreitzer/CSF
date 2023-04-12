@@ -27,3 +27,5 @@ CDKN2A deep deletions in CSF samples
 
 
 High level / Facets / Nic Socci -- concordance!
+
+CNA meeting!
