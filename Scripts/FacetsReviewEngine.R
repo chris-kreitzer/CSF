@@ -39,8 +39,8 @@ for(i in 1:nrow(csf)){
 number = 1
 sample = csf$Sample.ID[number]
 
-
-countmatrix = 
+countmatrix = facetsSuite::read_snp_matrix(input_file = files[grep(pattern = sample, x = files)])
+countmatrix = countmatrix[,c(1,2,3,5,4,6)]
 
 
 
