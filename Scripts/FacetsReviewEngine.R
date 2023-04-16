@@ -1,28 +1,49 @@
-## Automated pipeline for copy number alteration detection
-## using Facets!
+## Automated pipeline for CNA detection
+## by using Facets
 ## 
 ## start: 09/11/2022
 ## revision: 09/28/2022
 ## revision: 11/25/2022
+## revision: 04/15/2023
+##
 ## chris-kreitzer
 
 clean()
 gc()
 .rs.restartR()
-setup(working.path = '~/Documents/MSKCC/Subhi/CSF/')
+setup(working.path = '~/Documents/MSKCC/11_CSF/')
 library(patchwork)
 source('~/Documents/GitHub/CSF/Scripts/UtilityFunctions.R')
-snp_pileup = read.csv('Data/FINAL_samples/snp_files_out.txt', sep = '\t')
-sample_match = read.csv('Data/FINAL_samples/sample_match.txt', sep = '\t')
-sample_pairing = read.csv('Data/FINAL_samples/sample_pairing.txt', sep = '\t')
 
-## C-000597: countMatrix
-countMatrix_path = 'C-001796/C-001796__countMatrix.dat.gz'
-countMatrix_raw = read.csv(file = countMatrix_path, sep = ',')
-samples = grep(pattern = 'File*', colnames(countMatrix_raw))
-samples = (length(samples) - 4) / 4
-ID = 'C-001796'
-snp_pileup[which(snp_pileup$Patient_ID == ID), ]
+
+database = readxl::read_excel('00_Data/Database_Chris_Sub_April12.xlsx')
+csf = database[which(database$TYPE == 'CSF'), ]
+csf = csf[which(csf$CSF_STATUS != 'Test Failure'), ]
+files = list.files(path = '08_pileups/', full.names = T)
+
+
+for(i in 1:nrow(csf)){
+  if(any(grepl(pattern = csf$Sample.ID[i], files))){
+    next
+  } else {
+    print(csf$Sample.ID[i])
+  }
+}
+
+
+
+
+##----------------+
+## CountMatrix pre-check:
+##----------------+
+number = 1
+sample = csf$Sample.ID[number]
+
+
+countmatrix = 
+
+
+
 
 ## Parameters: (exclusively purity runs); not interested in gene_level alterations
 cval = 100
