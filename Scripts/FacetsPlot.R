@@ -37,8 +37,9 @@ cnlr_plot = function(facets_data,
   
   ymin = floor(min(segs$cnlr.median, na.rm = T))
   ymax = ceiling(max(segs$cnlr.median, na.rm = T))
-  if (ymin > -3) ymin = -3
-  if (ymax < 3) ymax = 3
+  
+  if (ymin > -4) ymin = -4
+  if (ymax < 4) ymax = 4
   
   if (!is.null(subset_snps)) {
     if (subset_snps == TRUE) {
@@ -142,7 +143,7 @@ valor_plot = function(facets_data,
                  aes(x = my_starts$chr_maploc, xend = my_ends$chr_maploc,
                      y = -my_starts$mafr, yend = -my_ends$mafr)) +
     labs(x = NULL, y = 'Variant allele log odds ratio') +
-    ylim(-6, 6) +
+    ylim(-8, 8) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 0, size = 8, color = 'black'),
           axis.text.y = element_text(angle = 0, size = 8, color = 'black'),
@@ -211,7 +212,8 @@ cf_plot = function(facets_data,
   
   cf = ggplot(segs) +
     geom_rect(aes(xmin = my_starts, xmax = my_ends, ymax = 1, ymin = 0),
-              fill = cols, col = 'white', size = 0) +
+              fill = cols, 
+              col = 'white', size = 0) +
     scale_x_continuous(breaks = mid, labels = names(mid), expand = c(.01, 0)) +
     scale_y_continuous(expand = c(0, 0)) +
     labs(x = NULL, y = my_ylab) +
