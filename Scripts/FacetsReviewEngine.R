@@ -42,7 +42,7 @@ for(i in 1:nrow(csf)){
 ## First run
 ## countMatrix pre-check:
 ##----------------+
-number = 5
+number = 19
 sample = csf$Sample.ID[number]
 
 countmatrix = readsnpmatrix(path = files[grep(pattern = sample, x = files)])
@@ -84,12 +84,12 @@ snp_nbhd = 250
 
 out = facetsSuite::run_facets(read_counts = countmatrix,
                                cval = cval,
-                               dipLogR = NULL,
+                               dipLogR = 0.155,
                                snp_nbhd = snp_nbhd,
                                seed = seed, 
                                genome = 'hg19', 
-                               ndepth = 35)
-
+                               ndepth = 30)
+out$dipLogR
 i = cnlr_plot(facets_data = out, genome = 'hg19')
 ii = valor_plot(facets_data = out, genome = 'hg19')
 iii = icn_plot(facets_data = out, genome = 'hg19')
@@ -126,7 +126,7 @@ seed = 100
 min_het = 15
 genome = 'hg19'
 snp_nbhd = 100
-diplogr = out$dipLogR
+diplogr = 0.155
 
 
 fit = facetsSuite::run_facets(read_counts = countmatrix,
@@ -135,7 +135,7 @@ fit = facetsSuite::run_facets(read_counts = countmatrix,
                               snp_nbhd = snp_nbhd,
                               seed = seed, 
                               genome = 'hg19', 
-                              ndepth = 25)
+                              ndepth = 30)
 
 i = cnlr_plot(facets_data = fit, genome = 'hg19')
 ii = valor_plot(facets_data = fit, genome = 'hg19')
@@ -152,6 +152,7 @@ qc
 cdkn2a_first = fit$snps[which(fit$snps$chrom == 9 &
                           fit$snps$maploc >= 21967751 &
                           fit$snps$maploc <= 21995300), ]
+cdkn2a_first
 cdkn2a_second = fit$segs[which(fit$segs$seg == unique(cdkn2a_first$seg)), ]
 cdkn2a_second
 
@@ -171,6 +172,7 @@ genes_all[which(genes_all$gene == 'CDK6'), c('chrom', 'median_cnlr_seg', 'tcn.em
 write.table(x = genes_all, file = paste0('07_CSF_refit/', sample, '/', sample, '_gene_level_alteration.txt'), sep = '\t', row.names = F)
 saveRDS(object = fit, file = paste0('07_CSF_refit/', sample, '/', sample, '_third_pass.rds'))
 
+rm(cdkn2a_first, cdkn2a_second, egfr_first, egfr_second, fit, qc, norm_density, countmatrix, i, ii, iii, iv)
 
 
 ## out

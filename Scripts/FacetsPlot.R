@@ -143,7 +143,7 @@ valor_plot = function(facets_data,
                  aes(x = my_starts$chr_maploc, xend = my_ends$chr_maploc,
                      y = -my_starts$mafr, yend = -my_ends$mafr)) +
     labs(x = NULL, y = 'Variant allele log odds ratio') +
-    ylim(-8, 8) +
+    ylim(-4, 4) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 0, size = 8, color = 'black'),
           axis.text.y = element_text(angle = 0, size = 8, color = 'black'),
