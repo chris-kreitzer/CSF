@@ -13,7 +13,11 @@ gc()
 .rs.restartR()
 setup(working.path = '~/Documents/MSKCC/11_CSF/')
 library(patchwork)
+library(dplyr)
+library(data.table)
 source('~/Documents/GitHub/CSF/Scripts/UtilityFunctions.R')
+source('~/Documents/GitHub/CSF/Scripts/FacetsPlot.R')
+source('~/Documents/GitHub/CSF/Scripts/cf_Plot.R')
 
 
 database = readxl::read_excel('00_Data/Database_Chris_Sub_April12.xlsx')
@@ -33,14 +37,74 @@ for(i in 1:nrow(csf)){
 
 
 
+
 ##----------------+
-## CountMatrix pre-check:
+## First run
+## countMatrix pre-check:
 ##----------------+
 number = 1
 sample = csf$Sample.ID[number]
 
 countmatrix = facetsSuite::read_snp_matrix(input_file = files[grep(pattern = sample, x = files)])
 countmatrix = countmatrix[,c(1,2,3,5,4,6)]
+
+snps = facetsSuite::run_facets(read_counts = countmatrix,
+                               cval = 100,
+                               dipLogR = NULL,
+                               snp_nbhd = 250,
+                               seed = 100, 
+                               genome = 'hg19', 
+                               ndepth = 20)
+het_snps = snps$snps[which(snps$snps$het == 1), ]
+
+dir.create(path = paste0('07_CSF_refit/', sample))
+pdf(file = paste0('07_CSF_refit/', sample, '/', 'Normal_Het_Distribution.pdf'), width = 4.5, height = 4.5)
+plot(density(het_snps$vafN[which(het_snps$het == 1)]), main = 'allele freq. het. SNPs\nmatched NORMAL')
+dev.off()
+norm_density = density(het_snps$vafN)
+norm_density_max = norm_density$x[which.max(norm_density$y)]
+ifelse(norm_density_max <= 0.4 | norm_density_max >= 0.6, print('STOP'), print('OK'))
+pdf(file = paste0('07_CSF_refit/', sample, '/', 'TUMOR_Het_Distribution.pdf'), width = 4.5, height = 4.5)
+plot(density(het_snps$vafT[which(het_snps$het == 1)]), main = 'allele freq. het. SNPs\nTUMOR')
+dev.off()
+
+
+
+##----------------+
+## Second run:
+## Ploidy, Purity, dipLogR determination
+## (exclusively purity runs);
+##----------------+
+cval = 100
+seed = 100
+min_het = 15
+genome = 'hg19'
+snp_nbhd = 250
+
+out = facetsSuite::run_facets(read_counts = countmatrix,
+                               cval = cval,
+                               dipLogR = NULL,
+                               snp_nbhd = snp_nbhd,
+                               seed = seed, 
+                               genome = 'hg19', 
+                               ndepth = 35)
+
+i = cnlr_plot(facets_data = out, genome = 'hg19')
+ii = valor_plot(facets_data = out, genome = 'hg19')
+iii = icn_plot(facets_data = out, genome = 'hg19')
+iv = cf_plot(facets_data = out, genome = 'hg19')
+
+i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
+
+qc = facets_fit_qc(facets_output = out)
+
+
+
+
+
+
+
+
 
 
 
