@@ -98,9 +98,60 @@ i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
 
 qc = facets_fit_qc(facets_output = out)
 
+system(command = paste0('mv ', files[grep(pattern = sample, x = files)], ' 07_CSF_refit/', sample, '/'))
+
+pass2 = i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_facets.png'), plot = pass2, device = 'png', width = 12, height = 10)
+
+sample_summary = data.frame(id = sample,
+                            CNA_fit = 'fail',
+                            Flag = 'contamination')
+
+write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
 
 
 
+##----------------+
+## Third run:
+## Gene-Level alterations if all the steps before
+## are satisfied
+## in-depth analyzes of CKDN2A, CDK6, and EGFR
+##----------------+
+cval = 50
+seed = 100
+min_het = 15
+genome = 'hg19'
+snp_nbhd = 100
+diplogr = out$dipLogR
+
+
+fit = facetsSuite::run_facets(read_counts = countmatrix,
+                              cval = cval,
+                              dipLogR = diplogr,
+                              snp_nbhd = snp_nbhd,
+                              seed = seed, 
+                              genome = 'hg19', 
+                              ndepth = 20)
+
+i = cnlr_plot(facets_data = fit, genome = 'hg19')
+ii = valor_plot(facets_data = fit, genome = 'hg19')
+iii = icn_plot(facets_data = fit, genome = 'hg19')
+iv = cf_plot(facets_data = fit, genome = 'hg19')
+
+i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
+
+qc = facets_fit_qc(facets_output = fit)
+
+pass3 = i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_facets.png'), plot = pass3, device = 'png', width = 12, height = 10)
+
+
+
+sample_summary = data.frame(id = sample,
+                            CNA_fit = 'fail',
+                            Flag = 'contamination')
+
+write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
 
 
 
