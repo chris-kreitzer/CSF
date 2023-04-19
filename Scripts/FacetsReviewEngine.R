@@ -42,7 +42,7 @@ for(i in 1:nrow(csf)){
 ## First run
 ## countMatrix pre-check:
 ##----------------+
-number = 147
+number = 155
 sample = csf$Sample.ID[number]
 
 countmatrix = readsnpmatrix(path = files[grep(pattern = sample, x = files)])
@@ -127,7 +127,7 @@ seed = 100
 min_het = 15
 genome = 'hg19'
 snp_nbhd = 100
-diplogr = 0.03818762
+diplogr = 0.1281249
 
 
 fit = facetsSuite::run_facets(read_counts = countmatrix,
