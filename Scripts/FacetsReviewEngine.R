@@ -42,7 +42,7 @@ for(i in 1:nrow(csf)){
 ## First run
 ## countMatrix pre-check:
 ##----------------+
-number = 19
+number = 147
 sample = csf$Sample.ID[number]
 
 countmatrix = readsnpmatrix(path = files[grep(pattern = sample, x = files)])
@@ -84,7 +84,7 @@ snp_nbhd = 250
 
 out = facetsSuite::run_facets(read_counts = countmatrix,
                                cval = cval,
-                               dipLogR = 0.155,
+                               dipLogR = NULL,
                                snp_nbhd = snp_nbhd,
                                seed = seed, 
                                genome = 'hg19', 
@@ -110,6 +110,7 @@ sample_summary = data.frame(id = sample,
 
 write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
 saveRDS(object = out, file = paste0('07_CSF_refit/', sample, '/', sample, '_second_pass.rds'))
+out$dipLogR
 rm(i, ii, iii, iv, pass2, sample_summary, out, cval, min_het, het_snps, snps)
 
 
@@ -126,7 +127,7 @@ seed = 100
 min_het = 15
 genome = 'hg19'
 snp_nbhd = 100
-diplogr = 0.155
+diplogr = 0.03818762
 
 
 fit = facetsSuite::run_facets(read_counts = countmatrix,
