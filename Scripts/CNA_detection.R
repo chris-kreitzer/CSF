@@ -25,6 +25,7 @@ source('~/Documents/GitHub/CSF/Scripts/FacetsPlot.R')
 source('~/Documents/GitHub/CSF/Scripts/cf_Plot.R')
 source('~/Documents/GitHub/CSF/Scripts/ReadSnpMatrix.R')
 source('~/Documents/GitHub/CSF/Scripts/gene_closeup.R')
+source('~/Documents/GitHub/CSF/Scripts/GMM.R')
 
 
 database = readxl::read_excel('00_Data/Database_Chris_Sub_April12.xlsx')
@@ -52,7 +53,7 @@ for(i in 1:nrow(csf)){
 ## First run
 ## countMatrix pre-check:
 ##----------------+
-number = 157
+number = 158
 sample = csf$Sample.ID[number]
 
 countmatrix = readsnpmatrix(path = files[grep(pattern = sample, x = files)])
@@ -182,7 +183,7 @@ rm(cdkn2a_first, cdkn2a_second, egfr_first, egfr_second, fit, qc, norm_density, 
 fourth = facetsSuite::run_facets(read_counts = countmatrix,
                                  cval = 100,
                                  dipLogR = NULL,
-                                 snp_nbhd = 100,
+                                 snp_nbhd = 50,
                                  seed = 100, 
                                  genome = 'hg19', 
                                  ndepth = 25)
@@ -249,7 +250,7 @@ title(main = paste0(sample, ' (10-90%)'))
 dev.off()
 write.table(x = chris, file = paste0('07_CSF_refit/', sample, '/', sample, '_IMPACT-like_CnLR.txt'), sep = '\t', row.names = F, quote = F)
 
-rm(Mean, Sd, x, xp, snps, lower, upper, k, fourth, snps)
+rm(Mean, Sd, x, xp, snps, lower, upper, k, fourth)
 
 
 
@@ -257,7 +258,7 @@ rm(Mean, Sd, x, xp, snps, lower, upper, k, fourth, snps)
 ## check Nic Soccis calls
 ##----------------+
 
-
+none
 
 
 
@@ -268,7 +269,7 @@ rm(Mean, Sd, x, xp, snps, lower, upper, k, fourth, snps)
 ## with Cnlr only measures; CDKN2A, EGFR, CDK4, CDK6
 ##----------------+
 dense_out = facetsSuite::run_facets(read_counts = countmatrix,
-                                    cval = 50, 
+                                    cval = 100, 
                                     snp_nbhd = 50, 
                                     ndepth = 25, 
                                     seed = seed)
@@ -276,115 +277,67 @@ dense_out = facetsSuite::run_facets(read_counts = countmatrix,
 
 ##-- investigate EGFR and CDKN2A manually
 x = gene_closeup(data = dense_out, gene = 'CDKN2A')
+x$plot
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDKN2A_closeup.png'), plot = x$plot, 
        device = 'png', width = 10, height = 8)
 
 sn = x$snps
 hist(sn$cnlr, nclass = 100)
-dip.test(x = sn$cnlr)
-ggqqplot(sn$cnlr)
+normality = ggqqplot(sn$cnlr, title = 'CnLR distribution chromosome 9p')
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_normality_9p.png'), plot = normality,
+       device = 'png', width = 6, height = 6)
 
+
+## MClust model; how many cluster fit the data
 x.gmm = Mclust(sn$cnlr)
 summary(x.gmm)
-x.gmm$parameters
-hist(sn$cnlr, nclass = 150)
-abline(v = x.gmm$parameters$mean[1])
-abline(v = x.gmm$parameters$mean[2])
+x.gmm$parameters$mean
+
+vec1 = which(x.gmm$classification == 1, arr.ind = T)
+jj = sn[vec1, ]
+round(table(jj$gene)['color'][[1]] / sum(table(jj$gene))*100)
+
+# none of the extreme cluster 1 refer to CDKN2A
+
 
 
 ##-- Gaussian mixture model; are there two components?
-mixmdl = mixtools::normalmixEM(sn$cnlr, k = 2)
-plot_mix_comps = function(x, mu, sigma, lam){
-  lam * dnorm(x, mu, sigma)
-}
+x = GMM(data = sn, components = 3)
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDKN2A_GMM.png'), plot = x$plot,
+       device = 'png', width = 6, height = 6)
 
-IMPACT.mix.example = data.frame(x = mixmdl$x) %>%
-  ggplot() +
-  geom_histogram(aes(x, ..density..), 
-                 binwidth = 0.05, 
-                 colour = "purple", 
-                 fill = "white", 
-                 bins = 200,
-                 size = 0.3) +
-  stat_function(geom = "line", fun = plot_mix_comps,
-                args = list(mixmdl$mu[1], mixmdl$sigma[1], lam = mixmdl$lambda[1]),
-                colour = "red", lwd = 1.2) +
-  stat_function(geom = "line", fun = plot_mix_comps,
-                args = list(mixmdl$mu[2], mixmdl$sigma[2], lam = mixmdl$lambda[2]),
-                colour = "blue", lwd = 1.2) +
-  geom_vline(xintercept = mixmdl$mu[which.max(mixmdl$lambda)],
-             linetype = 'dashed', 
-             size = 0.3, 
-             color = 'grey15') +
-  scale_y_continuous(expand = c(0.01, 0)) +
-  theme_bw() +
-  theme(axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        plot.subtitle = element_text(size = 12),
-        plot.title = element_text(size = 16),
-        panel.grid = element_blank()) +
-  labs(y = "Density", x = 'Copy Number Log Ratio') +
-  panel_border(size = 2, color = 'black')
-
-ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDKN2A_GMM.png'), plot = IMPACT.mix.example,
-       device = 'png', width = 10, height = 8)
+rm(x, jj, vec1, normality, sn, x.gmm)
 
 
-##-- EGFR
-x = gene_closeup(data = dense_out, gene = 'EGFR')
+
+##----------------+
+## EGFR
+##----------------+
+x = gene_closeup(data = dense_out, gene = 'KIT')
+x$plot
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_EGFR_closeup.png'), plot = x$plot, 
        device = 'png', width = 10, height = 8)
 
 sn = x$snps
-hist(sn$cnlr, nclass = 100)
-dip.test(x = sn$cnlr)
-ggqqplot(sn$cnlr)
 
+## MClust model; how many cluster fit the data
 x.gmm = Mclust(sn$cnlr)
 summary(x.gmm)
-x.gmm$parameters
-hist(sn$cnlr, nclass = 150)
-abline(v = x.gmm$parameters$mean[1])
-abline(v = x.gmm$parameters$mean[2])
+x.gmm$parameters$mean
 
+vec1 = which(x.gmm$classification == 2, arr.ind = T)
+jj = sn[vec1, ]
+round(table(jj$gene)['color'][[1]] / sum(table(jj$gene))*100)
+
+# none 
 
 ##-- Gaussian mixture model; are there two components?
-mixmdl = mixtools::normalmixEM(sn$cnlr, k = 2)
-plot_mix_comps = function(x, mu, sigma, lam){
-  lam * dnorm(x, mu, sigma)
-}
+x = GMM(data = sn, components = 3)
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_EGFR_GMM.png'), plot = x$plot,
+       device = 'png', width = 6, height = 6)
 
-IMPACT.mix.example = data.frame(x = mixmdl$x) %>%
-  ggplot() +
-  geom_histogram(aes(x, ..density..), 
-                 binwidth = 0.05, 
-                 colour = "purple", 
-                 fill = "white", 
-                 bins = 200,
-                 size = 0.3) +
-  stat_function(geom = "line", fun = plot_mix_comps,
-                args = list(mixmdl$mu[1], mixmdl$sigma[1], lam = mixmdl$lambda[1]),
-                colour = "red", lwd = 1.2) +
-  stat_function(geom = "line", fun = plot_mix_comps,
-                args = list(mixmdl$mu[2], mixmdl$sigma[2], lam = mixmdl$lambda[2]),
-                colour = "blue", lwd = 1.2) +
-  geom_vline(xintercept = mixmdl$mu[which.max(mixmdl$lambda)],
-             linetype = 'dashed', 
-             size = 0.3, 
-             color = 'grey15') +
-  scale_y_continuous(expand = c(0.01, 0)) +
-  theme_bw() +
-  theme(axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        plot.subtitle = element_text(size = 12),
-        plot.title = element_text(size = 16),
-        panel.grid = element_blank()) +
-  labs(y = "Density", x = 'Copy Number Log Ratio') +
-  panel_border(size = 2, color = 'black')
-
-ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDKN2A_GMM.png'), plot = IMPACT.mix.example,
-       device = 'png', width = 10, height = 8)
-
+rm(x, jj, vec1, sn, x.gmm)
 
 
 sample_summary = data.frame(id = sample,
