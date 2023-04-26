@@ -2,7 +2,7 @@
 ## gene closeup plot
 ## for CSF
 ##----------------+
-
+library(cowplot)
 gene_closeup = function(data, gene){
   snps = data$snps
   chrom = genes_hg19$chrom[which(genes_hg19$gene == gene)]
@@ -24,14 +24,15 @@ gene_closeup = function(data, gene){
   }
   
   plot = ggplot(snps, aes(x = order, y = cnlr, color = gene)) +
-    geom_point(position = position_dodge(width = 0.1), size = 1) +
+    geom_point(position = position_dodge(width = 0.1), size = 1.5) +
     scale_color_manual(values = c('color' = '#487EFB', 
-                                  'no_color' = 'grey65'),
+                                  'no_color' = 'grey75'),
                        name = '', labels = c('GOI', 'other')) +
     scale_y_continuous(expand = c(0.01, 1), limits = c(-3, 3)) +
     geom_hline(yintercept = 0, linetype = 'dashed') +
     theme_bw() +
-    theme(axis.text.x = element_blank()) +
+    theme(axis.text.x = element_blank(),
+          axis.text = element_text(size = 12, colour = 'black')) +
     panel_border(size = 2, color = 'black') +
     labs(x = paste0('Chromosome ', chrom, arm), y = 'CnLR', title = gene)
   

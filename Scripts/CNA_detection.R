@@ -17,6 +17,9 @@ library(patchwork)
 library(dplyr)
 library(data.table)
 library(readr)
+library(diptest)
+library(mclust)
+library(ggpubr)
 source('~/Documents/GitHub/CSF/Scripts/UtilityFunctions.R')
 source('~/Documents/GitHub/CSF/Scripts/FacetsPlot.R')
 source('~/Documents/GitHub/CSF/Scripts/cf_Plot.R')
@@ -115,7 +118,8 @@ ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_facets.png'), p
 
 sample_summary = data.frame(id = sample,
                             CNA_fit = 'fail',
-                            Flag = 'contamination')
+                            Flag = 'contamination',
+                            Notes = 'Careful. No purity,ploidy,fga,arm-level estimation possible')
 
 write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
 saveRDS(object = out, file = paste0('07_CSF_refit/', sample, '/', sample, '_second_pass.rds'))
@@ -245,7 +249,7 @@ title(main = paste0(sample, ' (10-90%)'))
 dev.off()
 write.table(x = chris, file = paste0('07_CSF_refit/', sample, '/', sample, '_IMPACT-like_CnLR.txt'), sep = '\t', row.names = F, quote = F)
 
-rm(Mean, Sd, x, xp, snps, lower, upper, k)
+rm(Mean, Sd, x, xp, snps, lower, upper, k, fourth, snps)
 
 
 
@@ -270,17 +274,18 @@ dense_out = facetsSuite::run_facets(read_counts = countmatrix,
                                     seed = seed)
   
 
+##-- investigate EGFR and CDKN2A manually
+x = gene_closeup(data = dense_out, gene = 'CDKN2A')
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDKN2A_closeup.png'), plot = x$plot, 
+       device = 'png', width = 10, height = 8)
 
 
-x = gene_closeup(data = dense_out, gene = 'CDK4')
+
 sn = x$snps
 hist(sn$cnlr, nclass = 100)
 dip.test(x = sn$cnlr)
+ggqqplot(sn$cnlr)
 
-ad.test(x = sn$cnlr)
-cvm.test(x = sn$cnlr)
-
-library(mclust)
 x.gmm = Mclust(sn$cnlr)
 summary(x.gmm)
 x.gmm$parameters
@@ -325,7 +330,6 @@ IMPACT.mix.example = data.frame(x = mixmdl$x) %>%
 mixmdl = mixtools::normalmixEM(x = p_snps$cnlr, k = 3, mu = c(-1,0, 1), ECM = F)
 summary(mixmdl)
 
-ggqqplot(sn$cnlr)
 
 
 
