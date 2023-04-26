@@ -21,6 +21,7 @@ source('~/Documents/GitHub/CSF/Scripts/UtilityFunctions.R')
 source('~/Documents/GitHub/CSF/Scripts/FacetsPlot.R')
 source('~/Documents/GitHub/CSF/Scripts/cf_Plot.R')
 source('~/Documents/GitHub/CSF/Scripts/ReadSnpMatrix.R')
+source('~/Documents/GitHub/CSF/Scripts/gene_closeup.R')
 
 
 database = readxl::read_excel('00_Data/Database_Chris_Sub_April12.xlsx')
@@ -39,6 +40,8 @@ for(i in 1:nrow(csf)){
     print(csf$Sample.ID[i])
   }
 }
+
+
 
 
 
@@ -73,6 +76,7 @@ pdf(file = paste0('07_CSF_refit/', sample, '/', 'TUMOR_Het_Distribution.pdf'), w
 plot(density(het_snps$vafT[which(het_snps$het == 1)]), main = 'allele freq. het. SNPs\nTUMOR')
 dev.off()
 rm(snps, het_snps)
+
 
 
 
@@ -266,42 +270,7 @@ dense_out = facetsSuite::run_facets(read_counts = countmatrix,
                                     seed = seed)
   
 
-gene_closeup = function(data, gene){
-  snps = data$snps
-  chrom = genes_hg19$chrom[which(genes_hg19$gene == gene)]
-  start = genes_hg19$start[which(genes_hg19$gene == gene)] 
-  end = genes_hg19$end[which(genes_hg19$gene == gene)]
-  
-  arm = ifelse(start <= hg19$centromere[which(hg19$chrom == chrom)], 'p', 'q')
-  
-  snps = snps[which(snps$chrom == chrom), ]
-  
-  if(arm == 'p'){
-    snps = snps[which(snps$maploc <= hg19$centromere[which(hg19$chrom == chrom)]), ]
-    snps$order = seq(1, nrow(snps), 1)
-    snps$gene = ifelse(snps$maploc >= start & snps$maploc <= end, 'color', 'no_color')
-  } else {
-    snps = snps[which(snps$maploc >= hg19$centromere[which(hg19$chrom == chrom)]), ]
-    snps$order = seq(1, nrow(snps), 1)
-    snps$gene = ifelse(snps$maploc >= start & snps$maploc <= end, 'color', 'no_color')
-  }
-  
-  plot = ggplot(snps, aes(x = order, y = cnlr, color = gene)) +
-    geom_point(position = position_dodge(width = 0.1), size = 1) +
-    scale_color_manual(values = c('color' = '#487EFB', 
-                                  'no_color' = 'grey65'),
-                       name = '', labels = c('GOI', 'other')) +
-    scale_y_continuous(expand = c(0.01, 1), limits = c(-3, 3)) +
-    geom_hline(yintercept = 0, linetype = 'dashed') +
-    theme_bw() +
-    theme(axis.text.x = element_blank()) +
-    panel_border(size = 2, color = 'black') +
-    labs(x = paste0('Chromosome ', chrom, arm), y = 'CnLR', title = gene)
-  
-  return(list(snps = snps, 
-              plot = plot))
-    
-}
+
 
 x = gene_closeup(data = dense_out, gene = 'CDK4')
 sn = x$snps
