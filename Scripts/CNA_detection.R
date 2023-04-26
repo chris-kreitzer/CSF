@@ -32,6 +32,7 @@ database = readxl::read_excel('00_Data/Database_Chris_Sub_April12.xlsx')
 csf = database[which(database$TYPE == 'CSF'), ]
 csf = csf[which(csf$CSF_STATUS != 'Test Failure'), ]
 files = list.files(path = '08_pileups/', full.names = T)
+Nic_manifest = read.csv('06_Nic_Socci_r_001/Manifest_Nic.txt', sep = '\t')
 GOIs = c('CDKN2A','CDK4','CDK6','PTEN','EGFR','PDGFRA',
          'KIT','KDR','MET','MDM2','MDM4','RB1','NF1',
          'TP53','FGF4', 'FGF19', 'PIK3CA', 'BRAF')
@@ -53,7 +54,7 @@ for(i in 1:nrow(csf)){
 ## First run
 ## countMatrix pre-check:
 ##----------------+
-number = 158
+number = 160
 sample = csf$Sample.ID[number]
 
 countmatrix = readsnpmatrix(path = files[grep(pattern = sample, x = files)])
@@ -92,12 +93,11 @@ rm(snps, het_snps)
 cval = 100
 seed = 100
 min_het = 15
-genome = 'hg19'
 snp_nbhd = 250
 
 out = facetsSuite::run_facets(read_counts = countmatrix,
                               cval = cval,
-                              dipLogR = NULL,
+                              dipLogR = 0.03,
                               snp_nbhd = snp_nbhd,
                               seed = seed, 
                               genome = 'hg19', 
@@ -117,15 +117,9 @@ system(command = paste0('mv ', files[grep(pattern = sample, x = files)], ' 07_CS
 pass2 = i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_facets.png'), plot = pass2, device = 'png', width = 12, height = 10)
 
-sample_summary = data.frame(id = sample,
-                            CNA_fit = 'fail',
-                            Flag = 'contamination',
-                            Notes = 'Careful. No purity,ploidy,fga,arm-level estimation possible')
-
-write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
 saveRDS(object = out, file = paste0('07_CSF_refit/', sample, '/', sample, '_second_pass.rds'))
 out$dipLogR
-rm(i, ii, iii, iv, pass2, sample_summary, out, cval, min_het)
+rm(i, ii, iii, iv, pass2, out, cval, min_het)
 
 
 
@@ -140,7 +134,7 @@ seed = 100
 min_het = 15
 genome = 'hg19'
 snp_nbhd = 100
-diplogr = 0.1281249
+diplogr = 0.03
 
 
 fit = facetsSuite::run_facets(read_counts = countmatrix,
@@ -158,20 +152,18 @@ iv = cf_plot(facets_data = fit, genome = 'hg19')
 
 i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
 
-qc = facets_fit_qc(facets_output = fit)
-qc
-
 
 ##-- gene level alteration
 genes_all = facetsSuite::gene_level_changes(facets_output = fit, genome = 'hg19')
 genes_all[which(genes_all$gene == 'EGFR'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 genes_all[which(genes_all$gene == 'CDKN2A'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 genes_all[which(genes_all$gene == 'CDK6'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+genes_all = genes_all[which(genes_all$gene %in% GOIs), ]
 
 write.table(x = genes_all, file = paste0('07_CSF_refit/', sample, '/', sample, '_gene_level_alteration.txt'), sep = '\t', row.names = F)
 saveRDS(object = fit, file = paste0('07_CSF_refit/', sample, '/', sample, '_third_pass.rds'))
 
-rm(cdkn2a_first, cdkn2a_second, egfr_first, egfr_second, fit, qc, norm_density, countmatrix, i, ii, iii, iv)
+rm(fit, norm_density, i, ii, iii, iv)
 
 
 
@@ -284,6 +276,7 @@ ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDKN2A_closeup.
 sn = x$snps
 hist(sn$cnlr, nclass = 100)
 normality = ggqqplot(sn$cnlr, title = 'CnLR distribution chromosome 9p')
+normality
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_normality_9p.png'), plot = normality,
        device = 'png', width = 6, height = 6)
 
@@ -302,7 +295,8 @@ round(table(jj$gene)['color'][[1]] / sum(table(jj$gene))*100)
 
 
 ##-- Gaussian mixture model; are there two components?
-x = GMM(data = sn, components = 3)
+x = GMM(data = sn, components = 2)
+x$plot
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDKN2A_GMM.png'), plot = x$plot,
        device = 'png', width = 6, height = 6)
 
@@ -313,7 +307,7 @@ rm(x, jj, vec1, normality, sn, x.gmm)
 ##----------------+
 ## EGFR
 ##----------------+
-x = gene_closeup(data = dense_out, gene = 'KIT')
+x = gene_closeup(data = dense_out, gene = 'EGFR')
 x$plot
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_EGFR_closeup.png'), plot = x$plot, 
        device = 'png', width = 10, height = 8)
@@ -325,7 +319,7 @@ x.gmm = Mclust(sn$cnlr)
 summary(x.gmm)
 x.gmm$parameters$mean
 
-vec1 = which(x.gmm$classification == 2, arr.ind = T)
+vec1 = which(x.gmm$classification == 3, arr.ind = T)
 jj = sn[vec1, ]
 round(table(jj$gene)['color'][[1]] / sum(table(jj$gene))*100)
 
@@ -340,17 +334,37 @@ ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_EGFR_GMM.png'),
 rm(x, jj, vec1, sn, x.gmm)
 
 
+
 sample_summary = data.frame(id = sample,
-                            CNA_fit = 'fail',
-                            Reason = 'contamination/B-allele-frequency',
+                            CNA_fit = 'pass',
+                            Reason = '',
+                            Notes = '',
+                            Purity = qc$purity,
+                            Ploidy = qc$ploidy,
+                            FGA = qc$fga,
+                            GMM = 'indication of CDKN2A and EGFR alteration',
+                            Highlevel_CNA = c('EGFR_amplification', 'CDKN2A_deep_deletion'))
+
+write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
+rm(chris, countmatrix, dense_out, gene_out)
+
+
+
+
+
+
+
+
+
+
+sample_summary = data.frame(id = sample,
+                            CNA_fit = 'pass',
+                            Reason = 'contamination; B-allele-frequency',
                             Notes = 'Careful. No purity,ploidy,fga,arm-level estimation possible',
                             Purity = NA,
                             Ploidy = NA,
-                            GMM = 'one cluster at 9p; two clusters at 7p',
-                            Highlevel_CNA = NA)
-
-write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
-rm(chris, countmatrix, dense_out, gene_out, IMPACT.mix.example, mixmdl, nn, norm_density, qc, sn, x, x.gmm)
+                            GMM = 'no indication of CDKN2A alteration. EGFR homozygous deletion',
+                            Highlevel_CNA = c('EGFR_amplification', 'CDKN2A_deep_deletion'))
 
 
 
