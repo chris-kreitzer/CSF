@@ -353,10 +353,6 @@ rm(chris, countmatrix, dense_out, gene_out)
 
 
 
-
-
-
-
 sample_summary = data.frame(id = sample,
                             CNA_fit = 'pass',
                             Reason = 'contamination; B-allele-frequency',
@@ -364,6 +360,16 @@ sample_summary = data.frame(id = sample,
                             Purity = NA,
                             Ploidy = NA,
                             GMM = 'no indication of CDKN2A alteration. EGFR homozygous deletion',
+                            EGFR = 
+                            CDKN2A = 
+                            CDK4 = 
+                            CDK6 = 
+                            PTEN = 
+                            KIT = 
+                            MET = 
+                            PDGFRA =
+                            MDM2 = 
+                            MDM4 = 
                             Highlevel_CNA = c('EGFR_amplification', 'CDKN2A_deep_deletion'))
 
 
