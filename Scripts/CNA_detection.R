@@ -333,26 +333,6 @@ ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_EGFR_GMM.png'),
 
 rm(x, jj, vec1, sn, x.gmm)
 
-
-
-sample_summary = data.frame(id = sample,
-                            CNA_fit = 'pass',
-                            Reason = '',
-                            Notes = '',
-                            Purity = qc$purity,
-                            Ploidy = qc$ploidy,
-                            FGA = qc$fga,
-                            GMM = 'indication of CDKN2A and EGFR alteration',
-                            Highlevel_CNA = c('EGFR_amplification', 'CDKN2A_deep_deletion'))
-
-write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
-rm(chris, countmatrix, dense_out, gene_out)
-
-
-
-
-
-
 sample_summary = data.frame(id = sample,
                             CNA_fit = 'pass',
                             Reason = 'contamination; B-allele-frequency',
@@ -372,6 +352,9 @@ sample_summary = data.frame(id = sample,
                             MDM4 = 
                             Highlevel_CNA = c('EGFR_amplification', 'CDKN2A_deep_deletion'))
 
+
+write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
+rm(chris, countmatrix, dense_out, gene_out)
 
 
 ## out
