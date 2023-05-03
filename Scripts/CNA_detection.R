@@ -52,7 +52,7 @@ for(i in 1:nrow(csf)){
 ## First run
 ## countMatrix pre-check:
 ##----------------+
-number = 160
+number = 161
 sample = csf$Sample.ID[number]
 
 countmatrix = readsnpmatrix(path = files[grep(pattern = sample, x = files)])
@@ -95,7 +95,7 @@ snp_nbhd = 250
 
 out = facetsSuite::run_facets(read_counts = countmatrix,
                               cval = cval,
-                              dipLogR = 0.03,
+                              dipLogR = 0.08,
                               snp_nbhd = snp_nbhd,
                               seed = seed, 
                               genome = 'hg19', 
@@ -132,7 +132,7 @@ seed = 100
 min_het = 15
 genome = 'hg19'
 snp_nbhd = 100
-diplogr = 0.03
+diplogr = 0.09
 
 
 fit = facetsSuite::run_facets(read_counts = countmatrix,
@@ -317,14 +317,14 @@ x.gmm = Mclust(sn$cnlr)
 summary(x.gmm)
 x.gmm$parameters$mean
 
-vec1 = which(x.gmm$classification == 3, arr.ind = T)
+vec1 = which(x.gmm$classification == 2, arr.ind = T)
 jj = sn[vec1, ]
 round(table(jj$gene)['color'][[1]] / sum(table(jj$gene))*100)
 
 # none 
 
 ##-- Gaussian mixture model; are there two components?
-x = GMM(data = sn, components = 3)
+x = GMM(data = sn, components = 2)
 x$plot
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_EGFR_GMM.png'), plot = x$plot,
        device = 'png', width = 6, height = 6)
@@ -333,26 +333,22 @@ rm(x, jj, vec1, sn, x.gmm)
 
 sample_summary = data.frame(id = sample,
                             CNA_fit = 'pass',
-                            Reason = 'contamination; B-allele-frequency',
-                            Notes = 'Careful. No purity,ploidy,fga,arm-level estimation possible',
-                            Purity = NA,
-                            Ploidy = NA,
-                            GMM = 'no indication of CDKN2A alteration. EGFR homozygous deletion',
-                            EGFR = 
-                            CDKN2A = 
-                            CDK4 = 
-                            CDK6 = 
-                            PTEN = 
-                            KIT = 
-                            MET = 
-                            PDGFRA =
-                            MDM2 = 
-                            MDM4 = 
-                            Highlevel_CNA = c('EGFR_amplification', 'CDKN2A_deep_deletion'))
+                            Reason = '',
+                            Notes = '',
+                            Purity = qc$purity,
+                            Ploidy = qc$ploidy,
+                            GMM = 'no indication of CDKN2A alteration. EGFR gain.',
+                            EGFR = 'Gain',
+                            CDKN2A = 'Diploid',
+                            CDK4 = 'Gain',
+                            CDK6 = 'Gain',
+                            PTEN = 'Diploid',
+                            Highlevel_CNA = c('EGFR_gain'))
 
 
 write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
 rm(chris, countmatrix, dense_out, gene_out)
+
 
 
 ## out
