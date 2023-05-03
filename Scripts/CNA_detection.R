@@ -52,7 +52,7 @@ for(i in 1:nrow(csf)){
 ## First run
 ## countMatrix pre-check:
 ##----------------+
-number = 163
+number = 164
 sample = csf$Sample.ID[number]
 
 countmatrix = readsnpmatrix(path = files[grep(pattern = sample, x = files)])
@@ -95,7 +95,7 @@ snp_nbhd = 250
 
 out = facetsSuite::run_facets(read_counts = countmatrix,
                               cval = cval,
-                              dipLogR = -0.18,
+                              dipLogR = NULL,
                               snp_nbhd = snp_nbhd,
                               seed = seed, 
                               genome = 'hg19', 
@@ -299,7 +299,7 @@ jj = sn[vec3, ]
 round(table(jj$gene)['color'][[1]] / total, 2)
 
 ##-- Gaussian mixture model; are there two components?
-x = GMM(data = sn, components = 3)
+x = GMM(data = sn, components = 2)
 x$plot
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDKN2A_GMM.png'), plot = x$plot,
        device = 'png', width = 6, height = 6)
@@ -371,7 +371,284 @@ round(table(jj$gene)['color'][[1]] / total, 2)
 ##-- Gaussian mixture model; are there two components?
 x = GMM(data = sn, components = 3)
 x$plot
-ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_EGFR_GMM.png'), plot = x$plot,
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDK4_GMM.png'), plot = x$plot,
+       device = 'png', width = 6, height = 6)
+
+rm(x, jj, vec1, sn, x.gmm)
+
+
+
+##----------------+
+## CDK6
+##----------------+
+x = gene_closeup(data = dense_out, gene = 'CDK6')
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDK6_closeup.png'), plot = x$plot, 
+       device = 'png', width = 10, height = 8)
+
+sn = x$snps
+
+## MClust model; how many cluster fit the data
+x.gmm = Mclust(sn$cnlr)
+summary(x.gmm)
+x.gmm$parameters$mean
+diplogr
+total = table(sn$gene)[['color']][1]
+vec1 = which(x.gmm$classification == 1, arr.ind = T)
+jj = sn[vec1, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+vec2 = which(x.gmm$classification == 2, arr.ind = T)
+jj = sn[vec2, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+
+# none 
+
+##-- Gaussian mixture model; are there two components?
+x = GMM(data = sn, components = 3)
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDK6_GMM.png'), plot = x$plot,
+       device = 'png', width = 6, height = 6)
+
+rm(x, jj, vec1, sn, x.gmm)
+
+
+
+##----------------+
+## PTEN
+##----------------+
+x = gene_closeup(data = dense_out, gene = 'PTEN')
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_PTEN_closeup.png'), plot = x$plot, 
+       device = 'png', width = 10, height = 8)
+
+sn = x$snps
+
+## MClust model; how many cluster fit the data
+x.gmm = Mclust(sn$cnlr)
+summary(x.gmm)
+x.gmm$parameters$mean
+diplogr
+total = table(sn$gene)[['color']][1]
+vec1 = which(x.gmm$classification == 1, arr.ind = T)
+jj = sn[vec1, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+vec2 = which(x.gmm$classification == 2, arr.ind = T)
+jj = sn[vec2, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+
+# none 
+
+##-- Gaussian mixture model; are there two components?
+x = GMM(data = sn, components = 3)
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_PTEN_GMM.png'), plot = x$plot,
+       device = 'png', width = 6, height = 6)
+
+rm(x, jj, vec1, sn, x.gmm)
+
+
+##----------------+
+## MDM2
+##----------------+
+x = gene_closeup(data = dense_out, gene = 'MDM2')
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_MDM2_closeup.png'), plot = x$plot, 
+       device = 'png', width = 10, height = 8)
+
+sn = x$snps
+
+## MClust model; how many cluster fit the data
+x.gmm = Mclust(sn$cnlr)
+summary(x.gmm)
+x.gmm$parameters$mean
+diplogr
+total = table(sn$gene)[['color']][1]
+vec1 = which(x.gmm$classification == 1, arr.ind = T)
+jj = sn[vec1, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+vec2 = which(x.gmm$classification == 2, arr.ind = T)
+jj = sn[vec2, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+
+# none 
+
+##-- Gaussian mixture model; are there two components?
+x = GMM(data = sn, components = 3)
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_MDM2_GMM.png'), plot = x$plot,
+       device = 'png', width = 6, height = 6)
+
+rm(x, jj, vec1, sn, x.gmm)
+
+
+##----------------+
+## KIT
+##----------------+
+x = gene_closeup(data = dense_out, gene = 'KIT')
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_KIT_closeup.png'), plot = x$plot, 
+       device = 'png', width = 10, height = 8)
+
+sn = x$snps
+
+## MClust model; how many cluster fit the data
+x.gmm = Mclust(sn$cnlr)
+summary(x.gmm)
+x.gmm$parameters$mean
+diplogr
+total = table(sn$gene)[['color']][1]
+vec1 = which(x.gmm$classification == 1, arr.ind = T)
+jj = sn[vec1, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+vec2 = which(x.gmm$classification == 2, arr.ind = T)
+jj = sn[vec2, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+
+# none 
+
+##-- Gaussian mixture model; are there two components?
+x = GMM(data = sn, components = 2)
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_KIT_GMM.png'), plot = x$plot,
+       device = 'png', width = 6, height = 6)
+
+rm(x, jj, vec1, sn, x.gmm)
+
+
+
+##----------------+
+## MET
+##----------------+
+x = gene_closeup(data = dense_out, gene = 'MET')
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_MET_closeup.png'), plot = x$plot, 
+       device = 'png', width = 10, height = 8)
+
+sn = x$snps
+
+## MClust model; how many cluster fit the data
+x.gmm = Mclust(sn$cnlr)
+summary(x.gmm)
+x.gmm$parameters$mean
+diplogr
+total = table(sn$gene)[['color']][1]
+vec1 = which(x.gmm$classification == 1, arr.ind = T)
+jj = sn[vec1, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+vec2 = which(x.gmm$classification == 2, arr.ind = T)
+jj = sn[vec2, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+
+# none 
+
+##-- Gaussian mixture model; are there two components?
+x = GMM(data = sn, components = 2)
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_MET_GMM.png'), plot = x$plot,
+       device = 'png', width = 6, height = 6)
+
+rm(x, jj, vec1, sn, x.gmm)
+
+
+##----------------+
+## PDGFRA
+##----------------+
+x = gene_closeup(data = dense_out, gene = 'PDGFRA')
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_PDGFRA_closeup.png'), plot = x$plot, 
+       device = 'png', width = 10, height = 8)
+
+sn = x$snps
+
+## MClust model; how many cluster fit the data
+x.gmm = Mclust(sn$cnlr)
+summary(x.gmm)
+x.gmm$parameters$mean
+diplogr
+total = table(sn$gene)[['color']][1]
+vec1 = which(x.gmm$classification == 1, arr.ind = T)
+jj = sn[vec1, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+vec2 = which(x.gmm$classification == 2, arr.ind = T)
+jj = sn[vec2, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+
+# none 
+
+##-- Gaussian mixture model; are there two components?
+x = GMM(data = sn, components = 2)
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_PDGFRA_GMM.png'), plot = x$plot,
+       device = 'png', width = 6, height = 6)
+
+rm(x, jj, vec1, sn, x.gmm)
+
+
+
+##----------------+
+## RB1
+##----------------+
+x = gene_closeup(data = dense_out, gene = 'RB1')
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_RB1_closeup.png'), plot = x$plot, 
+       device = 'png', width = 10, height = 8)
+
+sn = x$snps
+
+## MClust model; how many cluster fit the data
+x.gmm = Mclust(sn$cnlr)
+summary(x.gmm)
+x.gmm$parameters$mean
+diplogr
+total = table(sn$gene)[['color']][1]
+vec1 = which(x.gmm$classification == 1, arr.ind = T)
+jj = sn[vec1, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+vec2 = which(x.gmm$classification == 2, arr.ind = T)
+jj = sn[vec2, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+
+# none 
+
+##-- Gaussian mixture model; are there two components?
+x = GMM(data = sn, components = 2)
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_RB1_GMM.png'), plot = x$plot,
+       device = 'png', width = 6, height = 6)
+
+rm(x, jj, vec1, sn, x.gmm)
+
+
+
+##----------------+
+## KDR
+##----------------+
+x = gene_closeup(data = dense_out, gene = 'KDR')
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, 'KDR_closeup.png'), plot = x$plot, 
+       device = 'png', width = 10, height = 8)
+
+sn = x$snps
+
+## MClust model; how many cluster fit the data
+x.gmm = Mclust(sn$cnlr)
+summary(x.gmm)
+x.gmm$parameters$mean
+diplogr
+total = table(sn$gene)[['color']][1]
+vec1 = which(x.gmm$classification == 1, arr.ind = T)
+jj = sn[vec1, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+vec2 = which(x.gmm$classification == 2, arr.ind = T)
+jj = sn[vec2, ]
+round(table(jj$gene)['color'][[1]] / total, 2)
+
+# none 
+
+##-- Gaussian mixture model; are there two components?
+x = GMM(data = sn, components = 2)
+x$plot
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_KDR_GMM.png'), plot = x$plot,
        device = 'png', width = 6, height = 6)
 
 rm(x, jj, vec1, sn, x.gmm)
@@ -379,18 +656,23 @@ rm(x, jj, vec1, sn, x.gmm)
 
 
 sample_summary = data.frame(id = sample,
-                            CNA_fit = 'pass',
-                            Reason = '',
-                            Notes = '',
-                            Purity = qc$purity,
-                            Ploidy = qc$ploidy,
-                            GMM = 'no indication of CDKN2A alteration. EGFR and CDK6 loss.',
-                            EGFR = 'Hetloss',
+                            CNA_fit = 'Manual',
+                            Notes = 'GMM based. No purity, ploidy.',
+                            Clonality_analysis = 'No',
+                            Purity = NA,
+                            Ploidy = NA,
+                            FGA = NA,
                             CDKN2A = 'Diploid',
                             CDK4 = 'Diploid',
-                            CDK6 = 'Hetloss',
+                            EGFR = 'Loss',
+                            CDK6 = 'Loss',
                             PTEN = 'Diploid',
-                            Highlevel_CNA = c(''))
+                            KIT = 'Loss',
+                            MDM2 = 'Diploid',
+                            MET = 'Loss',
+                            RB1 = 'Diploid',
+                            KDR = 'Loss',
+                            Highlevel_CNA = NA)
 
 
 write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
