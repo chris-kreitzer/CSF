@@ -51,8 +51,9 @@ for(i in 1:nrow(csf)){
 ##----------------+
 ## First run
 ## countMatrix pre-check:
+## Normal/Tumor pairs
 ##----------------+
-number = 165
+number = 166
 sample = csf$Sample.ID[number]
 
 countmatrix = readsnpmatrix(path = files[grep(pattern = sample, x = files)])
@@ -82,95 +83,15 @@ rm(snps, het_snps)
 
 
 
-
 ##----------------+
-## Second run:
-## Ploidy, Purity, dipLogR determination
-## (exclusively purity runs);
+## Second run
+## check Nic Soccis calls
 ##----------------+
-cval = 100
-seed = 100
-min_het = 15
-snp_nbhd = 250
-
-out = facetsSuite::run_facets(read_counts = countmatrix,
-                              cval = cval,
-                              dipLogR = NULL,
-                              snp_nbhd = snp_nbhd,
-                              seed = seed, 
-                              genome = 'hg19', 
-                              ndepth = 25)
-out$dipLogR
-i = cnlr_plot(facets_data = out, genome = 'hg19')
-ii = valor_plot(facets_data = out, genome = 'hg19')
-iii = icn_plot(facets_data = out, genome = 'hg19')
-iv = cf_plot(facets_data = out, genome = 'hg19')
-
-i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
-
-qc = facets_fit_qc(facets_output = out)
-qc
-system(command = paste0('mv ', files[grep(pattern = sample, x = files)], ' 07_CSF_refit/', sample, '/'))
-
-pass2 = i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
-ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_facets.png'), plot = pass2, device = 'png', width = 12, height = 10)
-
-saveRDS(object = out, file = paste0('07_CSF_refit/', sample, '/', sample, '_second_pass.rds'))
-out$dipLogR
-rm(i, ii, iii, iv, pass2, out, cval, min_het)
 
 
 
-
-##----------------+
-## Third run:
-## Gene-Level alterations if all the steps before
-## are satisfied
-## in-depth analyzes of CKDN2A, CDK6, and EGFR
-##----------------+
-cval = 50
-seed = 100
-min_het = 15
-genome = 'hg19'
-snp_nbhd = 100
-diplogr = 0.1036039
-
-
-fit = facetsSuite::run_facets(read_counts = countmatrix,
-                              cval = 50,
-                              dipLogR = diplogr,
-                              snp_nbhd = snp_nbhd,
-                              seed = seed, 
-                              genome = 'hg19', 
-                              ndepth = 25)
-
-i = cnlr_plot(facets_data = fit, genome = 'hg19')
-ii = valor_plot(facets_data = fit, genome = 'hg19')
-iii = icn_plot(facets_data = fit, genome = 'hg19')
-iv = cf_plot(facets_data = fit, genome = 'hg19')
-
-i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
-
-
-##-- gene level alteration
-genes_all = facetsSuite::gene_level_changes(facets_output = fit, genome = 'hg19')
-genes_all[which(genes_all$gene == 'EGFR'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
-genes_all[which(genes_all$gene == 'CDKN2A'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
-genes_all[which(genes_all$gene == 'CDK6'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
-genes_all[which(genes_all$gene == 'CDK4'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
-genes_all[which(genes_all$gene == 'PTEN'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
-genes_all = genes_all[which(genes_all$gene %in% GOIs), ]
-
-write.table(x = genes_all, file = paste0('07_CSF_refit/', sample, '/', sample, '_gene_level_alteration.txt'), sep = '\t', row.names = F)
-saveRDS(object = fit, file = paste0('07_CSF_refit/', sample, '/', sample, '_third_pass.rds'))
-
-rm(fit, norm_density, i, ii, iii, iv)
-genes_all[,c('gene', 'chrom', 'tcn.em', 'cn_state', 'filter')]
-
-
-##----------------+
-## Fourth run: Engage with other
-## methods: Nic Socci's calls and 
+#----------------+
+## Third run: 
 ## the CnLR pipeline from my side
 ##----------------+
 fourth = facetsSuite::run_facets(read_counts = countmatrix,
@@ -242,22 +163,103 @@ for(i in 1:nrow(chris)){
 title(main = paste0(sample, ' (10-90%)'))
 dev.off()
 write.table(x = chris, file = paste0('07_CSF_refit/', sample, '/', sample, '_IMPACT-like_CnLR.txt'), sep = '\t', row.names = F, quote = F)
-
 rm(Mean, Sd, x, xp, snps, lower, upper, k, fourth)
 
 
 
 ##----------------+
-## check Nic Soccis calls
+## Fourth run:
+## FACETS: Ploidy, Purity, dipLogR determination
+## (exclusively purity runs);
+## broad run
 ##----------------+
+cval = 100
+seed = 100
+min_het = 15
+snp_nbhd = 250
 
-none
+out = facetsSuite::run_facets(read_counts = countmatrix,
+                              cval = cval,
+                              dipLogR = NULL,
+                              snp_nbhd = snp_nbhd,
+                              seed = seed, 
+                              genome = 'hg19', 
+                              ndepth = 25)
+out$dipLogR
+i = cnlr_plot(facets_data = out, genome = 'hg19')
+ii = valor_plot(facets_data = out, genome = 'hg19')
+iii = icn_plot(facets_data = out, genome = 'hg19')
+iv = cf_plot(facets_data = out, genome = 'hg19')
 
+i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
+
+qc = facets_fit_qc(facets_output = out)
+qc
+system(command = paste0('mv ', files[grep(pattern = sample, x = files)], ' 07_CSF_refit/', sample, '/'))
+
+pass2 = i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
+ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_facets.png'), plot = pass2, device = 'png', width = 12, height = 10)
+
+saveRDS(object = out, file = paste0('07_CSF_refit/', sample, '/', sample, '_second_pass.rds'))
+out$dipLogR
+rm(i, ii, iii, iv, pass2, out, cval, min_het)
+genes_broad = facetsSuite::gene_level_changes(facets_output = out, genome = 'hg19')
 
 
 
 ##----------------+
 ## Fifth run:
+## FACETS- hisens run
+## Gene-Level alterations if all the steps before
+## are satisfied
+## in-depth analyzes of CKDN2A, CDK6, and EGFR
+##----------------+
+cval = 50
+seed = 100
+min_het = 15
+genome = 'hg19'
+snp_nbhd = 100
+diplogr = -0.07208348
+
+
+fit = facetsSuite::run_facets(read_counts = countmatrix,
+                              cval = 50,
+                              dipLogR = diplogr,
+                              snp_nbhd = snp_nbhd,
+                              seed = seed, 
+                              genome = 'hg19', 
+                              ndepth = 25)
+
+i = cnlr_plot(facets_data = fit, genome = 'hg19')
+ii = valor_plot(facets_data = fit, genome = 'hg19')
+iii = icn_plot(facets_data = fit, genome = 'hg19')
+iv = cf_plot(facets_data = fit, genome = 'hg19')
+
+i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
+
+
+##-- gene level alteration
+genes_all = facetsSuite::gene_level_changes(facets_output = fit, genome = 'hg19')
+genes_all[which(genes_all$gene == 'EGFR'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+genes_all[which(genes_all$gene == 'CDKN2A'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+genes_all[which(genes_all$gene == 'CDK6'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+genes_all[which(genes_all$gene == 'CDK4'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+genes_all[which(genes_all$gene == 'PTEN'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+genes_all = genes_all[which(genes_all$gene %in% GOIs), ]
+
+#write.table(x = genes_all, file = paste0('07_CSF_refit/', sample, '/', sample, '_gene_level_alteration.txt'), sep = '\t', row.names = F)
+#saveRDS(object = fit, file = paste0('07_CSF_refit/', sample, '/', sample, '_third_pass.rds'))
+
+#rm(fit, norm_density, i, ii, iii, iv)
+genes_all[,c('gene', 'chrom', 'tcn.em', 'cn_state', 'filter')]
+
+
+##--- choose which FACETS call to use (broad / hisens run)
+
+
+
+##----------------+
+## Sixth run:
 ## Gaussian mixture model at selected genes
 ## with Cnlr only measures; CDKN2A, EGFR, CDK4, CDK6
 ##----------------+
@@ -267,8 +269,6 @@ dense_out = facetsSuite::run_facets(read_counts = countmatrix,
                                     ndepth = 25, 
                                     seed = seed)
   
-
-
 
 ##----------------+
 ## CDKN2A
@@ -292,47 +292,45 @@ x.gmm = Mclust(sn$cnlr)
 summary(x.gmm)
 x.gmm$parameters$mean
 
-cl1_m = round(x.gmm$parameters$mean[1][[1]], 2)
-cl2_m = round(x.gmm$parameters$mean[2][[1]], 2)
-cl3_m = round(x.gmm$parameters$mean[3][[1]], 2)
 
-diplogr
 total = table(sn$gene)[['color']][1]
-total
-
-vec1 = which(x.gmm$classification == 1, arr.ind = T)
-jj = sn[vec1, ]
-cl1 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl1
-
-vec2 = which(x.gmm$classification == 2, arr.ind = T)
-jj = sn[vec2, ]
-cl2 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl2 
-
-vec3 = which(x.gmm$classification == 4, arr.ind = T)
-jj = sn[vec3, ]
-cl3 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl3
+gmm_out_all = data.frame()
+for(i in 1:length(x.gmm$parameters$mean)){
+  cl_m = round(x.gmm$parameters$mean[i][[1]], 2)
+  vec = which(x.gmm$classification == i, arr.ind = T)
+  jj = sn[vec, ]
+  cluster = round(table(jj$gene)['color'][[1]] / total, 2) * 100
+  gmm_out = data.frame(Cluster = i,
+                       cl_m = cl_m,
+                       cluster_proportion = cluster,
+                       gene = 'CDKN2A')
+  gmm_out_all = rbind(gmm_out_all, gmm_out)
+  
+}
+gmm_out_all
 
 
 ##-- Gaussian mixture model; are there two components?
-x = GMM(data = sn, components = 2)
+x = GMM(data = sn, components = length(x.gmm$parameters$mean))
 plot = x$plot
 plot = plot + annotate(geom = 'text',
                 x = -2,
                 y = 0.5, 
                 label = paste0('DipLogR of sample: ', diplogr, '\n',
-                               'cluster 1: ', cl1_m, '; ', cl1, '% of probes\n',
-                               'cluster 2: ', cl2_m, '; ', cl2, '% of probes\n',
-                               'cluster 3: ', cl3_m, '; ', cl3, '% of probes\n')) +
+                               'Total probes: ', total, '\n',
+                               'cluster 1: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 1)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 1)], '% of probes\n',
+                               'cluster 2: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 2)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 2)], '% of probes\n',
+                               'cluster 3: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 3)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 3)], '% of probes\n')) +
   labs(title = 'CDKN2A; Fraction of probes falling within cluster')
 
 plot
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDKN2A_GMM.png'), plot = plot,
        device = 'png', width = 9, height = 6)
 
-rm(x, jj, vec1, normality, sn, x.gmm, plot)
+genes_all[which(genes_all$gene == 'CDKN2A'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+genes_broad[which(genes_broad$gene == 'CDKN2A'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+
+rm(x, jj, vec1, normality, sn, x.gmm, plot, gmm_out, gmm_out_all)
 
 
 
@@ -351,49 +349,50 @@ x.gmm = Mclust(sn$cnlr)
 summary(x.gmm)
 x.gmm$parameters$mean
 
-cl1_m = round(x.gmm$parameters$mean[1][[1]], 2)
-cl2_m = round(x.gmm$parameters$mean[2][[1]], 2)
-cl3_m = round(x.gmm$parameters$mean[3][[1]], 2)
 
-diplogr
 total = table(sn$gene)[['color']][1]
-total
+gmm_out_all = data.frame()
+for(i in 1:length(x.gmm$parameters$mean)){
+  cl_m = round(x.gmm$parameters$mean[i][[1]], 2)
+  vec = which(x.gmm$classification == i, arr.ind = T)
+  jj = sn[vec, ]
+  cluster = round(table(jj$gene)['color'][[1]] / total, 2) * 100
+  gmm_out = data.frame(Cluster = i,
+                       cl_m = cl_m,
+                       cluster_proportion = cluster,
+                       gene = 'EGFR')
+  gmm_out_all = rbind(gmm_out_all, gmm_out)
+  
+}
+gmm_out_all
 
-vec1 = which(x.gmm$classification == 1, arr.ind = T)
-jj = sn[vec1, ]
-cl1 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl1
-
-vec2 = which(x.gmm$classification == 2, arr.ind = T)
-jj = sn[vec2, ]
-cl2 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl2 
-
-vec3 = which(x.gmm$classification == 4, arr.ind = T)
-jj = sn[vec3, ]
-cl3 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl3
 
 
 ##-- Gaussian mixture model; are there two components?
-x = GMM(data = sn, components = 2)
+x = GMM(data = sn, components = length(x.gmm$parameters$mean))
 plot = x$plot
 plot = plot + annotate(geom = 'text',
                        x = -2,
                        y = 0.3, 
                        label = paste0('DipLogR of sample: ', diplogr, '\n',
-                                      'cluster 1: ', cl1_m, '; ', cl1, '% of probes\n',
-                                      'cluster 2: ', cl2_m, '; ', cl2, '% of probes\n',
-                                      'cluster 3: ', cl3_m, '; ', cl3, '% of probes\n')) +
+                                      'Total probes: ', total, '\n',
+                                      'cluster 1: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 1)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 1)], '% of probes\n',
+                                      'cluster 2: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 2)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 2)], '% of probes\n',
+                                      'cluster 3: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 3)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 3)], '% of probes\n')) +
   labs(title = 'EGFR; Fraction of probes falling within cluster')
 
 plot
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_EGFR_GMM.png'), plot = plot,
        device = 'png', width = 9, height = 6)
 
-rm(x, jj, vec1, vec2, vec3, cl2, cl1, cl3, jj, total, sn, x.gmm, plot)
+genes_all[which(genes_all$gene == 'EGFR'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+genes_broad[which(genes_broad$gene == 'EGFR'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+
+rm(x, jj, vec1, vec2, vec3, cl2, cl1, cl3, jj, total, sn, x.gmm, plot, gmm_out, gmm_out_all)
 
 
+
+## continue here
 
 ##----------------+
 ## CDK4
@@ -435,7 +434,7 @@ cl3
 
 
 ##-- Gaussian mixture model; are there two components?
-x = GMM(data = sn, components = 3)
+x = GMM(data = sn, components = 2)
 plot = x$plot
 plot = plot + annotate(geom = 'text',
                        x = -2,
@@ -449,8 +448,10 @@ plot = plot + annotate(geom = 'text',
 plot
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDK4_GMM.png'), plot = plot,
        device = 'png', width = 9, height = 6)
+genes_all[which(genes_all$gene == 'CDK4'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+genes_broad[which(genes_broad$gene == 'CDK4'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
-rm(x, x, vec1, vec2, vec3, cl2, cl1, cl3, jj, total, sn, x.gmm, plot)
+rm(x, vec1, vec2, vec3, cl2, cl1, cl3, jj, total, sn, x.gmm, plot)
 
 
 
@@ -495,7 +496,7 @@ cl3
 
 
 ##-- Gaussian mixture model; are there two components?
-x = GMM(data = sn, components = 3)
+x = GMM(data = sn, components = 2)
 plot = x$plot
 plot = plot + annotate(geom = 'text',
                        x = -2,
@@ -509,6 +510,9 @@ plot = plot + annotate(geom = 'text',
 plot
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDK6_GMM.png'), plot = plot,
        device = 'png', width = 9, height = 6)
+genes_all[which(genes_all$gene == 'CDK6'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+genes_broad[which(genes_broad$gene == 'CDK6'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+
 
 rm(x, vec1, vec2, vec3, cl2, cl1, cl3, jj, total, sn, x.gmm, plot)
 
@@ -556,7 +560,7 @@ cl3
 
 
 ##-- Gaussian mixture model; are there two components?
-x = GMM(data = sn, components = 3)
+x = GMM(data = sn, components = 2)
 plot = x$plot
 plot = plot + annotate(geom = 'text',
                        x = -2,
@@ -570,6 +574,9 @@ plot = plot + annotate(geom = 'text',
 plot
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_PTEN_GMM.png'), plot = plot,
        device = 'png', width = 9, height = 6)
+genes_all[which(genes_all$gene == 'PTEN'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+genes_broad[which(genes_broad$gene == 'PTEN'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+
 
 rm(x, vec1, vec2, vec3, cl2, cl1, cl3, jj, total, sn, x.gmm, plot)
 
@@ -616,7 +623,7 @@ cl3
 
 
 ##-- Gaussian mixture model; are there two components?
-x = GMM(data = sn, components = 3)
+x = GMM(data = sn, components = 2)
 plot = x$plot
 plot = plot + annotate(geom = 'text',
                        x = -2,
@@ -630,6 +637,9 @@ plot = plot + annotate(geom = 'text',
 plot
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_MDM2_GMM.png'), plot = plot,
        device = 'png', width = 9, height = 6)
+genes_all[which(genes_all$gene == 'MDM2'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+genes_broad[which(genes_broad$gene == 'MDM2'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
+
 
 rm(x, vec1, vec2, vec3, cl2, cl1, cl3, jj, total, sn, x.gmm, plot)
 
@@ -669,11 +679,15 @@ jj = sn[vec2, ]
 cl2 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
 cl2 
 
-vec3 = which(x.gmm$classification == 4, arr.ind = T)
+vec3 = which(x.gmm$classification == 3, arr.ind = T)
 jj = sn[vec3, ]
 cl3 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
 cl3
 
+vec4 = which(x.gmm$classification == 4, arr.ind = T)
+jj = sn[vec4, ]
+cl4 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
+cl4
 
 ##-- Gaussian mixture model; are there two components?
 x = GMM(data = sn, components = 3)
