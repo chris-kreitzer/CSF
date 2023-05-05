@@ -392,8 +392,6 @@ rm(x, jj, vec1, vec2, vec3, cl2, cl1, cl3, jj, total, sn, x.gmm, plot, gmm_out, 
 
 
 
-## continue here
-
 ##----------------+
 ## CDK4
 ##----------------+
@@ -409,40 +407,36 @@ x.gmm = Mclust(sn$cnlr)
 summary(x.gmm)
 x.gmm$parameters$mean
 
-cl1_m = round(x.gmm$parameters$mean[1][[1]], 2)
-cl2_m = round(x.gmm$parameters$mean[2][[1]], 2)
-cl3_m = round(x.gmm$parameters$mean[3][[1]], 2)
 
-diplogr
 total = table(sn$gene)[['color']][1]
-total
+gmm_out_all = data.frame()
+for(i in 1:length(x.gmm$parameters$mean)){
+  cl_m = round(x.gmm$parameters$mean[i][[1]], 2)
+  vec = which(x.gmm$classification == i, arr.ind = T)
+  jj = sn[vec, ]
+  cluster = round(table(jj$gene)['color'][[1]] / total, 2) * 100
+  gmm_out = data.frame(Cluster = i,
+                       cl_m = cl_m,
+                       cluster_proportion = cluster,
+                       gene = 'CDK4')
+  gmm_out_all = rbind(gmm_out_all, gmm_out)
+  
+}
+gmm_out_all
 
-vec1 = which(x.gmm$classification == 1, arr.ind = T)
-jj = sn[vec1, ]
-cl1 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl1
-
-vec2 = which(x.gmm$classification == 2, arr.ind = T)
-jj = sn[vec2, ]
-cl2 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl2 
-
-vec3 = which(x.gmm$classification == 4, arr.ind = T)
-jj = sn[vec3, ]
-cl3 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl3
 
 
 ##-- Gaussian mixture model; are there two components?
-x = GMM(data = sn, components = 2)
+x = GMM(data = sn, components = length(x.gmm$parameters$mean))
 plot = x$plot
 plot = plot + annotate(geom = 'text',
                        x = -2,
                        y = 0.3, 
                        label = paste0('DipLogR of sample: ', diplogr, '\n',
-                                      'cluster 1: ', cl1_m, '; ', cl1, '% of probes\n',
-                                      'cluster 2: ', cl2_m, '; ', cl2, '% of probes\n',
-                                      'cluster 3: ', cl3_m, '; ', cl3, '% of probes\n')) +
+                                      'Total probes: ', total, '\n',
+                                      'cluster 1: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 1)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 1)], '% of probes\n',
+                                      'cluster 2: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 2)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 2)], '% of probes\n',
+                                      'cluster 3: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 3)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 3)], '% of probes\n')) +
   labs(title = 'CDK4; Fraction of probes falling within cluster')
 
 plot
@@ -466,45 +460,40 @@ ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_CDK6_closeup.pn
 sn = x$snps
 
 ## MClust model; how many cluster fit the data
-## MClust model; how many cluster fit the data
 x.gmm = Mclust(sn$cnlr)
 summary(x.gmm)
 x.gmm$parameters$mean
 
-cl1_m = round(x.gmm$parameters$mean[1][[1]], 2)
-cl2_m = round(x.gmm$parameters$mean[2][[1]], 2)
-cl3_m = round(x.gmm$parameters$mean[3][[1]], 2)
 
-diplogr
 total = table(sn$gene)[['color']][1]
-total
+gmm_out_all = data.frame()
+for(i in 1:length(x.gmm$parameters$mean)){
+  cl_m = round(x.gmm$parameters$mean[i][[1]], 2)
+  vec = which(x.gmm$classification == i, arr.ind = T)
+  jj = sn[vec, ]
+  cluster = round(table(jj$gene)['color'][[1]] / total, 2) * 100
+  gmm_out = data.frame(Cluster = i,
+                       cl_m = cl_m,
+                       cluster_proportion = cluster,
+                       gene = 'CDK6')
+  gmm_out_all = rbind(gmm_out_all, gmm_out)
+  
+}
+gmm_out_all
 
-vec1 = which(x.gmm$classification == 1, arr.ind = T)
-jj = sn[vec1, ]
-cl1 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl1
-
-vec2 = which(x.gmm$classification == 2, arr.ind = T)
-jj = sn[vec2, ]
-cl2 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl2 
-
-vec3 = which(x.gmm$classification == 4, arr.ind = T)
-jj = sn[vec3, ]
-cl3 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl3
 
 
 ##-- Gaussian mixture model; are there two components?
-x = GMM(data = sn, components = 2)
+x = GMM(data = sn, components = length(x.gmm$parameters$mean))
 plot = x$plot
 plot = plot + annotate(geom = 'text',
                        x = -2,
                        y = 0.3, 
                        label = paste0('DipLogR of sample: ', diplogr, '\n',
-                                      'cluster 1: ', cl1_m, '; ', cl1, '% of probes\n',
-                                      'cluster 2: ', cl2_m, '; ', cl2, '% of probes\n',
-                                      'cluster 3: ', cl3_m, '; ', cl3, '% of probes\n')) +
+                                      'Total probes: ', total, '\n',
+                                      'cluster 1: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 1)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 1)], '% of probes\n',
+                                      'cluster 2: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 2)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 2)], '% of probes\n',
+                                      'cluster 3: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 3)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 3)], '% of probes\n')) +
   labs(title = 'CDK6; Fraction of probes falling within cluster')
 
 plot
@@ -530,45 +519,40 @@ ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_PTEN_closeup.pn
 sn = x$snps
 
 ## MClust model; how many cluster fit the data
-## MClust model; how many cluster fit the data
 x.gmm = Mclust(sn$cnlr)
 summary(x.gmm)
 x.gmm$parameters$mean
 
-cl1_m = round(x.gmm$parameters$mean[1][[1]], 2)
-cl2_m = round(x.gmm$parameters$mean[2][[1]], 2)
-cl3_m = round(x.gmm$parameters$mean[3][[1]], 2)
 
-diplogr
 total = table(sn$gene)[['color']][1]
-total
+gmm_out_all = data.frame()
+for(i in 1:length(x.gmm$parameters$mean)){
+  cl_m = round(x.gmm$parameters$mean[i][[1]], 2)
+  vec = which(x.gmm$classification == i, arr.ind = T)
+  jj = sn[vec, ]
+  cluster = round(table(jj$gene)['color'][[1]] / total, 2) * 100
+  gmm_out = data.frame(Cluster = i,
+                       cl_m = cl_m,
+                       cluster_proportion = cluster,
+                       gene = 'PTEN')
+  gmm_out_all = rbind(gmm_out_all, gmm_out)
+  
+}
+gmm_out_all
 
-vec1 = which(x.gmm$classification == 1, arr.ind = T)
-jj = sn[vec1, ]
-cl1 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl1
-
-vec2 = which(x.gmm$classification == 2, arr.ind = T)
-jj = sn[vec2, ]
-cl2 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl2 
-
-vec3 = which(x.gmm$classification == 4, arr.ind = T)
-jj = sn[vec3, ]
-cl3 = round(table(jj$gene)['color'][[1]] / total, 2) * 100
-cl3
 
 
 ##-- Gaussian mixture model; are there two components?
-x = GMM(data = sn, components = 2)
+x = GMM(data = sn, components = length(x.gmm$parameters$mean))
 plot = x$plot
 plot = plot + annotate(geom = 'text',
                        x = -2,
                        y = 0.3, 
                        label = paste0('DipLogR of sample: ', diplogr, '\n',
-                                      'cluster 1: ', cl1_m, '; ', cl1, '% of probes\n',
-                                      'cluster 2: ', cl2_m, '; ', cl2, '% of probes\n',
-                                      'cluster 3: ', cl3_m, '; ', cl3, '% of probes\n')) +
+                                      'Total probes: ', total, '\n',
+                                      'cluster 1: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 1)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 1)], '% of probes\n',
+                                      'cluster 2: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 2)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 2)], '% of probes\n',
+                                      'cluster 3: ', gmm_out_all$cl_m[which(gmm_out_all$Cluster == 3)], '; ', gmm_out_all$cluster_proportion[which(gmm_out_all$Cluster == 3)], '% of probes\n')) +
   labs(title = 'PTEN; Fraction of probes falling within cluster')
 
 plot
@@ -581,6 +565,8 @@ genes_broad[which(genes_broad$gene == 'PTEN'), c('chrom', 'median_cnlr_seg', 'tc
 rm(x, vec1, vec2, vec3, cl2, cl1, cl3, jj, total, sn, x.gmm, plot)
 
 
+
+## continue herre
 
 ##----------------+
 ## MDM2
