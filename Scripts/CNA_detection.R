@@ -26,6 +26,7 @@ source('~/Documents/GitHub/CSF/Scripts/cf_Plot.R')
 source('~/Documents/GitHub/CSF/Scripts/ReadSnpMatrix.R')
 source('~/Documents/GitHub/CSF/Scripts/gene_closeup.R')
 source('~/Documents/GitHub/CSF/Scripts/GMM.R')
+source('~/Documents/GitHub/CSF/Scripts/ExonicMapping_CDKN2A.R')
 
 
 database = readxl::read_excel('00_Data/Database_Chris_Sub_April12.xlsx')
@@ -263,6 +264,7 @@ genes_all[,c('gene', 'chrom', 'tcn.em', 'cn_state', 'filter')]
 ## Gaussian mixture model at selected genes
 ## with Cnlr only measures; CDKN2A, EGFR, CDK4, CDK6
 ##----------------+
+countmatrix = readsnpmatrix(path = '01_countmatrices/countsMerged____P-0005701-T01-IM5_P-0005701-N01-IM5.dat.gz/countsMerged____P-0005701-T01-IM5_P-0005701-N01-IM5.dat.gz')
 dense_out = facetsSuite::run_facets(read_counts = countmatrix,
                                     cval = 100, 
                                     snp_nbhd = 50, 
@@ -284,6 +286,44 @@ normality = ggqqplot(sn$cnlr, title = 'CnLR distribution chromosome 9p')
 normality
 ggsave(filename = paste0('07_CSF_refit/', sample, '/', sample, '_normality_9p.png'), plot = normality,
        device = 'png', width = 6, height = 6)
+
+
+
+##----------------+
+## exonic structure CDKN2A
+##----------------+
+cd = sn[which(sn$maploc >= 21967752 & sn$maploc <= 21995300), ]
+cd$seq = 1:nrow(cd)
+cd$seq = cd$seq * -1
+
+
+exonic = exonic_structure(gene = 'CDKN2A', type = 'exon')
+exonic = exonic[which(exonic$level  == 1), ]
+
+View(exonic)
+
+exon3: 21967751-21968241
+exon2: 21970901-21971207
+exon1a
+
+ggplot(cd) +
+  geom_rect(aes(xmin = 21970000, xmax = 21975000, ymin = 0.5, ymax = 1.5)) +
+  geom_point(aes(x = maploc, y = seq, color = cnlr), size = 2) +
+  scale_colour_gradient2(
+    low = "darkblue",
+    mid = "white",
+    high = "red",
+    midpoint = -1.7,
+    space = "Lab",
+    na.value = "grey50",
+    guide = "colourbar",
+    aesthetics = "colour"
+  ) +
+
+  theme_bw() +
+  theme(aspect.ratio = 0.5)
+  
+
 
 
 
