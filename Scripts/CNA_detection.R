@@ -17,7 +17,6 @@ library(patchwork)
 library(dplyr)
 library(data.table)
 library(readr)
-library(diptest)
 library(mclust)
 library(ggpubr)
 source('~/Documents/GitHub/CSF/Scripts/UtilityFunctions.R')
@@ -33,6 +32,10 @@ database = readxl::read_excel('00_Data/Database_Chris_Sub_April12.xlsx')
 csf = database[which(database$TYPE == 'CSF'), ]
 csf = csf[which(csf$CSF_STATUS != 'Test Failure'), ]
 files = list.files(path = '08_pileups/', full.names = T)
+files2 = list.files(path = '01_countmatrices/', full.names = T, pattern = 'gz|pileup')
+files = c(files, files2)
+
+
 Nic_manifest = read.csv('06_Nic_Socci_r_001/Manifest_Nic.txt', sep = '\t')
 GOIs = c('CDKN2A','CDK4','CDK6','PTEN','EGFR','PDGFRA',
          'KIT','KDR','MET','MDM2','MDM4','RB1','NF1',
@@ -48,16 +51,17 @@ for(i in 1:nrow(csf)){
 }
 
 
-
 ##----------------+
 ## First run
 ## countMatrix pre-check:
 ## Normal/Tumor pairs
 ##----------------+
-number = 167
+number = 1
 sample = csf$Sample.ID[number]
+path = files[grep(pattern = sample, files)]
+path = ifelse(length(path) > 1, files[grep(pattern = '08_pileup', path)], path)
 
-countmatrix = readsnpmatrix(path = files[grep(pattern = sample, x = files)])
+countmatrix = readsnpmatrix(path = path)
 countmatrix = as.data.frame(countmatrix)
 
 snps = facetsSuite::run_facets(read_counts = countmatrix,
