@@ -54,7 +54,7 @@ for(i in 1:nrow(csf)){
 ## countMatrix pre-check:
 ## Normal/Tumor pairs
 ##----------------+
-number = 11
+number = 42
 sample = csf$Sample.ID[number]
 path = files[grep(pattern = sample, files)]
 
@@ -62,7 +62,7 @@ countmatrix = readsnpmatrix(path = path)
 countmatrix = as.data.frame(countmatrix)
 
 snps = facetsSuite::run_facets(read_counts = countmatrix,
-                               cval = 100,
+                               cval = 150,
                                dipLogR = NULL,
                                snp_nbhd = 250,
                                seed = 100, 
@@ -90,7 +90,8 @@ sample
 ## check Nic Soccis calls
 ##----------------+
 
-Nic_Socci = 'not_analysed'
+Nic_Socci = 'none'
+paste(c('PDGFRA_AMP', 'KIT_AMP', 'KDR_AMP', 'CDK4_AMP'), collapse = ',')
 
 #----------------+
 ## Third run: 
@@ -169,6 +170,7 @@ rm(Mean, Sd, x, xp, snps, lower, upper, k, fourth, chris)
 
 
 Chris = 'none'
+paste(c('CDK4_AMP', 'PDGFRA_AMP', 'KIT_AMP', 'KDR_AMP'), collapse = ',')
 
 
 
@@ -185,7 +187,7 @@ snp_nbhd = 250
 
 out = facetsSuite::run_facets(read_counts = countmatrix,
                               cval = cval,
-                              dipLogR = -0.03,
+                              dipLogR = NULL,
                               snp_nbhd = snp_nbhd,
                               seed = seed, 
                               genome = 'hg19', 
@@ -235,12 +237,12 @@ fit = facetsSuite::run_facets(read_counts = countmatrix,
                               genome = 'hg19', 
                               ndepth = 25)
 
-i = cnlr_plot(facets_data = fit, genome = 'hg19')
-ii = valor_plot(facets_data = fit, genome = 'hg19')
-iii = icn_plot(facets_data = fit, genome = 'hg19')
-iv = cf_plot(facets_data = fit, genome = 'hg19')
-
-i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
+# i = cnlr_plot(facets_data = fit, genome = 'hg19')
+# ii = valor_plot(facets_data = fit, genome = 'hg19')
+# iii = icn_plot(facets_data = fit, genome = 'hg19')
+# iv = cf_plot(facets_data = fit, genome = 'hg19')
+# 
+# i / ii / iii / iv + plot_layout(heights = c(1,1,0.5,0.25))
 qc = facets_fit_qc(facets_output = fit)
 qc
 
@@ -254,7 +256,7 @@ genes_all[which(genes_all$gene == 'CDK4'), c('chrom', 'median_cnlr_seg', 'tcn.em
 genes_all[which(genes_all$gene == 'PTEN'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 genes_all = genes_all[which(genes_all$gene %in% GOIs), ]
 
-#write.table(x = genes_all, file = paste0('07_CSF_refit/', sample, '/', sample, '_gene_level_alteration.txt'), sep = '\t', row.names = F)
+write.table(x = genes_all, file = paste0('07_CSF_refit/', sample, '/', sample, '_gene_level_alteration.txt'), sep = '\t', row.names = F)
 saveRDS(object = fit, file = paste0('07_CSF_refit/', sample, '/', sample, '_third_pass.rds'))
 
 #rm(fit, norm_density, i, ii, iii, iv)
@@ -264,12 +266,12 @@ genes_all[,c('gene', 'chrom', 'tcn.em', 'cn_state', 'filter')]
 ##--- choose which FACETS call to use (broad / hisens run)
 
 CNA_fit = 'Manual. GMM based.'
-Notes = 'Purity_NA'
+Notes = 'Waterfall. Purity_NA'
 Clonality_analysis = 'no'
 Purity = qc$purity
-Ploidy = NA
-FGA = NA  
-WGD = NA
+Ploidy = qc$ploidy
+FGA = qc$fga
+WGD = qc$wgd
 
 genes_broad = facetsSuite::gene_level_changes(facets_output = out, genome = 'hg19')
 write.table(x = genes_broad, file = paste0('07_CSF_refit/', sample, '/', sample, '_gene_level_alteration.txt'), sep = '\t', row.names = F)
@@ -356,7 +358,7 @@ genes_broad[which(genes_broad$gene == 'CDKN2A'), c('chrom', 'median_cnlr_seg', '
 
 rm(x, jj, sn, x.gmm, plot, gmm_out, gmm_out_all)
 
-CDKN2A = 'Deletion'
+CDKN2A = 'Diploid'
 
 
 ##----------------+
@@ -648,7 +650,7 @@ genes_all[which(genes_all$gene == 'MDM2'), c('chrom', 'median_cnlr_seg', 'tcn.em
 genes_broad[which(genes_broad$gene == 'MDM2'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-MDM2 = 'Gain'
+MDM2 = 'Diploid'
 
 
 ##----------------+
@@ -705,7 +707,7 @@ genes_all[which(genes_all$gene == 'KIT'), c('chrom', 'median_cnlr_seg', 'tcn.em'
 genes_broad[which(genes_broad$gene == 'KIT'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-KIT = 'Gain'
+KIT = 'Diploid'
 
 
 ##----------------+
@@ -819,7 +821,7 @@ genes_all[which(genes_all$gene == 'PDGFRA'), c('chrom', 'median_cnlr_seg', 'tcn.
 genes_broad[which(genes_broad$gene == 'PDGFRA'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-PDGFRA = 'Gain'
+PDGFRA = 'Diploid'
 
 
 ##----------------+
@@ -934,7 +936,7 @@ genes_all[which(genes_all$gene == 'KDR'), c('chrom', 'median_cnlr_seg', 'tcn.em'
 genes_broad[which(genes_broad$gene == 'KDR'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-KDR = 'Gain'
+KDR = 'Diploid'
 
 
 ##----------------+
@@ -961,13 +963,13 @@ sample_summary = data.frame(id = sample,
                             RB1 = RB1,
                             PDGFRA = PDGFRA,
                             KDR = KDR,
-                            Highlevel_CNA = paste(c('CDKN2A_deletion', 'KIT_gain', 'MDM2_gain', 'PDGFRA_gain'), collapse = ','))
-paste(c('CDKN2A_deletion', 'KIT_gain', 'MDM2_gain', 'PDGFRA_gain'), collapse = ',')
+                            Highlevel_CNA = 'none')
+paste(c('CDKN2A','EGFR'), collapse = ',')
 View(sample_summary)
 write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
 rm(arm, cdkn2a, exon, gmm_out, gmm_out_all, jj, out, CDKN2A, CDK4, CDK6, EGFR, Chris, diplogr, cluster, countmatrix, dense_out, gene_out, qc, sample_summary, position)
 rm(path, PDGFRA, Ploidy, Purity, vec, WGD, sample, KDR, KIT, MDM2, MET, Nic_Socci, Notes, PTEN, RB1, FGA, gene, gene_call, CNA_fit)
-rm(cl_m, Clonality_analysis, gene_cnlr_mean, i, hugo)
+rm(cl_m, Clonality_analysis, gene_cnlr_mean, i, hugo, fit, norm_density, genes_all, genes_broad, norm_density_max)
 dev.off()
 
 
