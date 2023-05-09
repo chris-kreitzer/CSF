@@ -32,8 +32,6 @@ database = readxl::read_excel('00_Data/Database_Chris_Sub_April12.xlsx')
 csf = database[which(database$TYPE == 'CSF'), ]
 csf = csf[which(csf$CSF_STATUS != 'Test Failure'), ]
 files = list.files(path = '08_pileups/', full.names = T)
-files2 = list.files(path = '01_countmatrices/', full.names = T, pattern = 'gz|pileup')
-files = c(files, files2)
 
 
 Nic_manifest = read.csv('06_Nic_Socci_r_001/Manifest_Nic.txt', sep = '\t')
@@ -59,7 +57,6 @@ for(i in 1:nrow(csf)){
 number = 1
 sample = csf$Sample.ID[number]
 path = files[grep(pattern = sample, files)]
-path = ifelse(length(path) > 1, files[grep(pattern = '08_pileup', path)], path)
 
 countmatrix = readsnpmatrix(path = path)
 countmatrix = as.data.frame(countmatrix)
