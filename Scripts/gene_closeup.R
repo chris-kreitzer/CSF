@@ -28,7 +28,7 @@ gene_closeup = function(data, gene){
     scale_color_manual(values = c('color' = '#487EFB', 
                                   'no_color' = 'grey75'),
                        name = '', labels = c('GOI', 'other')) +
-    scale_y_continuous(expand = c(0.01, 1), limits = c(-3, 3)) +
+    scale_y_continuous(expand = c(0.01, 1), limits = c(-5, 5)) +
     geom_hline(yintercept = 0, linetype = 'dashed') +
     theme_bw() +
     theme(axis.text.x = element_blank(),
