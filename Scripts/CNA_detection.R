@@ -54,7 +54,7 @@ for(i in 1:nrow(csf)){
 ## countMatrix pre-check:
 ## Normal/Tumor pairs
 ##----------------+
-number = 76
+number = 79
 sample = csf$Sample.ID[number]
 path = files[grep(pattern = sample, files)]
 
@@ -90,8 +90,8 @@ sample
 ## check Nic Soccis calls
 ##----------------+
 
-Nic_Socci = 'none'
-paste(c('MET_AMP', 'CDK4_AMP'), collapse = ',')
+Nic_Socci = paste(c('MDM2_AMP', 'CDK4_AMP'), collapse = ',')
+paste(c('MDM2_AMP', 'CDK4_AMP'), collapse = ',')
 
 #----------------+
 ## Third run: 
@@ -169,8 +169,8 @@ write.table(x = chris, file = paste0('07_CSF_refit/', sample, '/', sample, '_IMP
 rm(Mean, Sd, x, xp, snps, lower, upper, k, fourth, chris)
 
 
-Chris = 'none'
-paste(c('PDGFRA_AMP', 'KIT_AMP', 'KDR_AMP','MDM2_AMP'), collapse = ',')
+Chris = paste(c('CDK4_AMP', 'PTEN_Del', 'EGFR_AMP','MDM2_AMP', 'MET_AMP'), collapse = ',')
+paste(c('CDK4_AMP', 'PTEN_Del', 'EGFR_AMP','MDM2_AMP', 'MET_AMP'), collapse = ',')
 
 
 
@@ -187,7 +187,7 @@ snp_nbhd = 250
 
 out = facetsSuite::run_facets(read_counts = countmatrix,
                               cval = cval,
-                              dipLogR = 0,
+                              dipLogR = NULL,
                               snp_nbhd = snp_nbhd,
                               seed = seed, 
                               genome = 'hg19', 
@@ -265,8 +265,8 @@ genes_all[,c('gene', 'chrom', 'tcn.em', 'cn_state', 'filter')]
 
 ##--- choose which FACETS call to use (broad / hisens run)
 
-CNA_fit = 'Facets. Broad/Second run. Manual. GMM based.'
-Notes = ''
+CNA_fit = 'Facets. Hisens/Third run. Nic Socci. Chris. Manual. GMM based.'
+Notes = 'Wonderful example'
 Clonality_analysis = 'yes'
 Purity = qc$purity
 Ploidy = qc$ploidy
@@ -358,7 +358,7 @@ genes_broad[which(genes_broad$gene == 'CDKN2A'), c('chrom', 'median_cnlr_seg', '
 
 rm(x, jj, sn, x.gmm, plot, gmm_out, gmm_out_all)
 
-CDKN2A = 'Diploid'
+CDKN2A = 'Hetloss'
 
 
 ##----------------+
@@ -475,7 +475,7 @@ genes_broad[which(genes_broad$gene == 'CDK4'), c('chrom', 'median_cnlr_seg', 'tc
 
 rm(x, jj, total, sn, x.gmm, plot)
 
-CDK4 = 'Diploid'
+CDK4 = 'Ampflification'
 
 
 ##----------------+
@@ -593,7 +593,7 @@ genes_broad[which(genes_broad$gene == 'PTEN'), c('chrom', 'median_cnlr_seg', 'tc
 
 
 rm(x, total, sn, x.gmm, plot)
-PTEN = 'Diploid'
+PTEN = 'Hetloss'
 
 
 ##----------------+
@@ -650,7 +650,7 @@ genes_all[which(genes_all$gene == 'MDM2'), c('chrom', 'median_cnlr_seg', 'tcn.em
 genes_broad[which(genes_broad$gene == 'MDM2'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-MDM2 = 'Diploid'
+MDM2 = 'Amplification'
 
 
 ##----------------+
@@ -764,7 +764,7 @@ genes_all[which(genes_all$gene == 'MET'), c('chrom', 'median_cnlr_seg', 'tcn.em'
 genes_broad[which(genes_broad$gene == 'MET'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-MET = 'Diploid'
+MET = 'Gain'
 
 
 ##----------------+
@@ -963,8 +963,8 @@ sample_summary = data.frame(id = sample,
                             RB1 = RB1,
                             PDGFRA = PDGFRA,
                             KDR = KDR,
-                            Highlevel_CNA = 'none')
-paste(c('CDKN2A', 'CDK6'), collapse = ',')
+                            Highlevel_CNA = paste(c('CDK4', 'MDM2'), collapse = ','))
+paste(c('CDK4', 'MDM2'), collapse = ',')
 View(sample_summary)
 write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
 rm(arm, cdkn2a, exon, gmm_out, gmm_out_all, jj, out, CDKN2A, CDK4, CDK6, EGFR, Chris, diplogr, cluster, countmatrix, dense_out, gene_out, qc, sample_summary, position)
