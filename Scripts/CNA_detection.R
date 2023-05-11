@@ -54,7 +54,7 @@ for(i in 1:nrow(csf)){
 ## countMatrix pre-check:
 ## Normal/Tumor pairs
 ##----------------+
-number = 73
+number = 76
 sample = csf$Sample.ID[number]
 path = files[grep(pattern = sample, files)]
 
@@ -90,7 +90,7 @@ sample
 ## check Nic Soccis calls
 ##----------------+
 
-Nic_Socci = 'CDKN2A_Del'
+Nic_Socci = 'none'
 paste(c('MET_AMP', 'CDK4_AMP'), collapse = ',')
 
 #----------------+
@@ -169,7 +169,7 @@ write.table(x = chris, file = paste0('07_CSF_refit/', sample, '/', sample, '_IMP
 rm(Mean, Sd, x, xp, snps, lower, upper, k, fourth, chris)
 
 
-Chris = 'CDKN2A_Amp'
+Chris = 'none'
 paste(c('PDGFRA_AMP', 'KIT_AMP', 'KDR_AMP','MDM2_AMP'), collapse = ',')
 
 
@@ -187,7 +187,7 @@ snp_nbhd = 250
 
 out = facetsSuite::run_facets(read_counts = countmatrix,
                               cval = cval,
-                              dipLogR = NULL,
+                              dipLogR = 0,
                               snp_nbhd = snp_nbhd,
                               seed = seed, 
                               genome = 'hg19', 
@@ -265,9 +265,9 @@ genes_all[,c('gene', 'chrom', 'tcn.em', 'cn_state', 'filter')]
 
 ##--- choose which FACETS call to use (broad / hisens run)
 
-CNA_fit = 'Nic Socci'
-Notes = 'Tumor/Normal pairs swapped in pileup file?'
-Clonality_analysis = 'no'
+CNA_fit = 'Facets. Broad/Second run. Manual. GMM based.'
+Notes = ''
+Clonality_analysis = 'yes'
 Purity = qc$purity
 Ploidy = qc$ploidy
 FGA = qc$fga
@@ -358,7 +358,7 @@ genes_broad[which(genes_broad$gene == 'CDKN2A'), c('chrom', 'median_cnlr_seg', '
 
 rm(x, jj, sn, x.gmm, plot, gmm_out, gmm_out_all)
 
-CDKN2A = 'Deletion'
+CDKN2A = 'Diploid'
 
 
 ##----------------+
@@ -417,7 +417,7 @@ genes_broad[which(genes_broad$gene == 'EGFR'), c('chrom', 'median_cnlr_seg', 'tc
 
 rm(x, jj, total, sn, x.gmm, plot, gmm_out, gmm_out_all)
 
-EGFR = 'Diploid'
+EGFR = 'Gain'
 
 
 ##----------------+
@@ -534,7 +534,7 @@ genes_broad[which(genes_broad$gene == 'CDK6'), c('chrom', 'median_cnlr_seg', 'tc
 
 rm(x, total, sn, x.gmm, plot)
 
-CDK6 = 'Diploid'
+CDK6 = 'Gain'
 
 
 
@@ -963,7 +963,7 @@ sample_summary = data.frame(id = sample,
                             RB1 = RB1,
                             PDGFRA = PDGFRA,
                             KDR = KDR,
-                            Highlevel_CNA = paste(c('CDKN2A'), collapse = ','))
+                            Highlevel_CNA = 'none')
 paste(c('CDKN2A', 'CDK6'), collapse = ',')
 View(sample_summary)
 write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
