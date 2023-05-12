@@ -54,7 +54,7 @@ for(i in 1:nrow(csf)){
 ## countMatrix pre-check:
 ## Normal/Tumor pairs
 ##----------------+
-number = 91
+number = 103
 sample = csf$Sample.ID[number]
 path = files[grep(pattern = sample, files)]
 
@@ -90,7 +90,7 @@ sample
 ## check Nic Soccis calls
 ##----------------+
 
-Nic_Socci = paste(c('PDGFRA_AMP', 'KIT_AMP'), collapse = ',')
+Nic_Socci = 'none'
 paste(c('PDGFRA_AMP', 'KIT_AMP'), collapse = ',')
 
 #----------------+
@@ -169,8 +169,8 @@ write.table(x = chris, file = paste0('07_CSF_refit/', sample, '/', sample, '_IMP
 rm(Mean, Sd, x, xp, snps, lower, upper, k, fourth, chris)
 
 
-Chris = paste(c('PDGFRA_Del', 'KIT_Del', 'KDR_Del', 'MDM4_Del'), collapse = ',')
-paste(c('PDGFRA_Del', 'KIT_Del', 'KDR_Del'), collapse = ',')
+Chris = 'none'
+paste(c('PDGFRA_Amp', 'CDKN2A_Del'), collapse = ',')
 
 
 
@@ -187,7 +187,7 @@ snp_nbhd = 250
 
 out = facetsSuite::run_facets(read_counts = countmatrix,
                               cval = cval,
-                              dipLogR = -0.45,
+                              dipLogR = 0.1,
                               snp_nbhd = snp_nbhd,
                               seed = seed, 
                               genome = 'hg19', 
@@ -265,8 +265,8 @@ genes_all[,c('gene', 'chrom', 'tcn.em', 'cn_state', 'filter')]
 
 ##--- choose which FACETS call to use (broad / hisens run)
 
-CNA_fit = 'Nic Socci and manual GMM based'
-Notes = 'Swapped matched Normal. Check Chris/Nic Socci calls'
+CNA_fit = 'Manuel. GMM based'
+Notes = 'Purity_NA; wonderful CDKN2A example'
 Clonality_analysis = 'no'
 Purity = NA
 Ploidy = NA
@@ -417,7 +417,7 @@ genes_broad[which(genes_broad$gene == 'EGFR'), c('chrom', 'median_cnlr_seg', 'tc
 
 rm(x, jj, total, sn, x.gmm, plot, gmm_out, gmm_out_all)
 
-EGFR = 'Diploid'
+EGFR = 'Gain'
 
 
 ##----------------+
@@ -534,7 +534,7 @@ genes_broad[which(genes_broad$gene == 'CDK6'), c('chrom', 'median_cnlr_seg', 'tc
 
 rm(x, total, sn, x.gmm, plot)
 
-CDK6 = 'Diploid'
+CDK6 = 'Gain'
 
 
 
@@ -593,7 +593,7 @@ genes_broad[which(genes_broad$gene == 'PTEN'), c('chrom', 'median_cnlr_seg', 'tc
 
 
 rm(x, total, sn, x.gmm, plot)
-PTEN = 'Diploid'
+PTEN = 'Gain'
 
 
 ##----------------+
@@ -707,7 +707,7 @@ genes_all[which(genes_all$gene == 'KIT'), c('chrom', 'median_cnlr_seg', 'tcn.em'
 genes_broad[which(genes_broad$gene == 'KIT'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-KIT = 'Amplification'
+KIT = 'Gain'
 
 
 ##----------------+
@@ -764,7 +764,7 @@ genes_all[which(genes_all$gene == 'MET'), c('chrom', 'median_cnlr_seg', 'tcn.em'
 genes_broad[which(genes_broad$gene == 'MET'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-MET = 'Diploid'
+MET = 'Gain'
 
 
 ##----------------+
@@ -821,7 +821,7 @@ genes_all[which(genes_all$gene == 'PDGFRA'), c('chrom', 'median_cnlr_seg', 'tcn.
 genes_broad[which(genes_broad$gene == 'PDGFRA'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-PDGFRA = 'Amplification'
+PDGFRA = 'Gain'
 
 
 ##----------------+
@@ -936,7 +936,7 @@ genes_all[which(genes_all$gene == 'KDR'), c('chrom', 'median_cnlr_seg', 'tcn.em'
 genes_broad[which(genes_broad$gene == 'KDR'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-KDR = 'Diploid'
+KDR = 'Gain'
 
 
 ##----------------+
@@ -963,8 +963,8 @@ sample_summary = data.frame(id = sample,
                             RB1 = RB1,
                             PDGFRA = PDGFRA,
                             KDR = KDR,
-                            Highlevel_CNA = paste(c('CDKN2A', 'PDGFRA', 'KIT'), collapse = ','))
-paste(c('CDKN2A', 'PDGFRA', 'KIT'), collapse = ',')
+                            Highlevel_CNA = 'CDKN2A')
+paste(c('CDKN2A', 'EGFR'), collapse = ',')
 View(sample_summary)
 write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
 rm(arm, cdkn2a, exon, gmm_out, gmm_out_all, jj, out, CDKN2A, CDK4, CDK6, EGFR, Chris, diplogr, cluster, countmatrix, dense_out, gene_out, qc, sample_summary, position)
