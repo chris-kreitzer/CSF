@@ -54,7 +54,7 @@ for(i in 1:nrow(csf)){
 ## countMatrix pre-check:
 ## Normal/Tumor pairs
 ##----------------+
-number = 123
+number = 131
 sample = csf$Sample.ID[number]
 path = files[grep(pattern = sample, files)]
 
@@ -169,7 +169,7 @@ write.table(x = chris, file = paste0('07_CSF_refit/', sample, '/', sample, '_IMP
 rm(Mean, Sd, x, xp, snps, lower, upper, k, fourth, chris)
 
 
-Chris = 'none'
+Chris = 'EGFR_AMP'
 paste(c('CDKN2A_Amp', 'EGFR_AMP'), collapse = ',')
 
 
@@ -265,13 +265,13 @@ genes_all[,c('gene', 'chrom', 'tcn.em', 'cn_state', 'filter')]
 
 ##--- choose which FACETS call to use (broad / hisens run)
 
-CNA_fit = 'Manual. GMM based'
-Notes = 'Purity_NA'
-Clonality_analysis = 'no'
-Purity = NA
-Ploidy = NA
-FGA = NA
-WGD = NA
+CNA_fit = 'Facets. Broad/Second run. Manual. GMM based'
+Notes = ''
+Clonality_analysis = 'yes'
+Purity = qc$purity
+Ploidy = qc$ploidy
+FGA = qc$fga
+WGD = qc$wgd
 
 genes_broad = facetsSuite::gene_level_changes(facets_output = out, genome = 'hg19')
 write.table(x = genes_broad, file = paste0('07_CSF_refit/', sample, '/', sample, '_gene_level_alteration.txt'), sep = '\t', row.names = F)
@@ -417,7 +417,7 @@ genes_broad[which(genes_broad$gene == 'EGFR'), c('chrom', 'median_cnlr_seg', 'tc
 
 rm(x, jj, total, sn, x.gmm, plot, gmm_out, gmm_out_all)
 
-EGFR = 'Diploid'
+EGFR = 'Amplification'
 
 
 ##----------------+
@@ -878,7 +878,7 @@ genes_all[which(genes_all$gene == 'RB1'), c('chrom', 'median_cnlr_seg', 'tcn.em'
 genes_broad[which(genes_broad$gene == 'RB1'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-RB1 = 'Diploid'
+RB1 = 'Hetloss'
 
 
 
@@ -963,8 +963,8 @@ sample_summary = data.frame(id = sample,
                             RB1 = RB1,
                             PDGFRA = PDGFRA,
                             KDR = KDR,
-                            Highlevel_CNA = 'none')
-paste(c('EGFR', 'MET'), collapse = ',')
+                            Highlevel_CNA = paste(c('EGFR'), collapse = ','))
+paste(c('CDKN2A','MET'), collapse = ',')
 View(sample_summary)
 write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
 rm(arm, cdkn2a, exon, gmm_out, gmm_out_all, jj, out, CDKN2A, CDK4, CDK6, EGFR, Chris, diplogr, cluster, countmatrix, dense_out, gene_out, qc, sample_summary, position)
@@ -974,3 +974,4 @@ dev.off()
 
 
 ## out
+
