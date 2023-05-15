@@ -54,7 +54,7 @@ for(i in 1:nrow(csf)){
 ## countMatrix pre-check:
 ## Normal/Tumor pairs
 ##----------------+
-number = 202
+number = 222
 sample = csf$Sample.ID[number]
 path = files[grep(pattern = sample, files)]
 
@@ -90,7 +90,7 @@ sample
 ## check Nic Soccis calls
 ##----------------+
 
-Nic_Socci = 'not_analysed'
+Nic_Socci = 'none'
 paste(c('EGFR_AMP', 'CDK4_AMP', 'MDM2_AMP'), collapse = ',')
 
 #----------------+
@@ -265,8 +265,8 @@ genes_all[,c('gene', 'chrom', 'tcn.em', 'cn_state', 'filter')]
 
 ##--- choose which FACETS call to use (broad / hisens run)
 
-CNA_fit = 'Manual. GMM based.'
-Notes = 'Purity_NA'
+CNA_fit = 'Not possible'
+Notes = 'Facets analysis error. Error in seg.start[seg]:seg.end[seg] : NA/NaN argument'
 Clonality_analysis = 'no'
 Purity = NA
 Ploidy = NA
@@ -358,7 +358,7 @@ genes_broad[which(genes_broad$gene == 'CDKN2A'), c('chrom', 'median_cnlr_seg', '
 
 rm(x, jj, sn, x.gmm, plot, gmm_out, gmm_out_all)
 
-CDKN2A = 'Deletion'
+CDKN2A = NA
 
 
 ##----------------+
@@ -417,7 +417,7 @@ genes_broad[which(genes_broad$gene == 'EGFR'), c('chrom', 'median_cnlr_seg', 'tc
 
 rm(x, jj, total, sn, x.gmm, plot, gmm_out, gmm_out_all)
 
-EGFR = 'Gain'
+EGFR = NA
 
 
 ##----------------+
@@ -475,7 +475,7 @@ genes_broad[which(genes_broad$gene == 'CDK4'), c('chrom', 'median_cnlr_seg', 'tc
 
 rm(x, jj, total, sn, x.gmm, plot)
 
-CDK4 = 'Hetloss'
+CDK4 = NA
 
 
 ##----------------+
@@ -534,7 +534,7 @@ genes_broad[which(genes_broad$gene == 'CDK6'), c('chrom', 'median_cnlr_seg', 'tc
 
 rm(x, total, sn, x.gmm, plot)
 
-CDK6 = 'Gain'
+CDK6 = NA
 
 
 ##----------------+
@@ -592,7 +592,7 @@ genes_broad[which(genes_broad$gene == 'PTEN'), c('chrom', 'median_cnlr_seg', 'tc
 
 
 rm(x, total, sn, x.gmm, plot)
-PTEN = 'Diploid'
+PTEN = NA
 
 
 ##----------------+
@@ -649,7 +649,7 @@ genes_all[which(genes_all$gene == 'MDM2'), c('chrom', 'median_cnlr_seg', 'tcn.em
 genes_broad[which(genes_broad$gene == 'MDM2'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-MDM2 = 'Diploid'
+MDM2 = NA
 
 
 ##----------------+
@@ -706,7 +706,7 @@ genes_all[which(genes_all$gene == 'KIT'), c('chrom', 'median_cnlr_seg', 'tcn.em'
 genes_broad[which(genes_broad$gene == 'KIT'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-KIT = 'Diploid'
+KIT = NA
 
 
 ##----------------+
@@ -763,7 +763,7 @@ genes_all[which(genes_all$gene == 'MET'), c('chrom', 'median_cnlr_seg', 'tcn.em'
 genes_broad[which(genes_broad$gene == 'MET'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-MET = 'Gain'
+MET = NA
 
 
 ##----------------+
@@ -820,7 +820,7 @@ genes_all[which(genes_all$gene == 'PDGFRA'), c('chrom', 'median_cnlr_seg', 'tcn.
 genes_broad[which(genes_broad$gene == 'PDGFRA'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-PDGFRA = 'Diploid'
+PDGFRA = NA
 
 
 ##----------------+
@@ -877,7 +877,7 @@ genes_all[which(genes_all$gene == 'RB1'), c('chrom', 'median_cnlr_seg', 'tcn.em'
 genes_broad[which(genes_broad$gene == 'RB1'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-RB1 = 'Gain'
+RB1 = NA
 
 
 
@@ -935,7 +935,7 @@ genes_all[which(genes_all$gene == 'KDR'), c('chrom', 'median_cnlr_seg', 'tcn.em'
 genes_broad[which(genes_broad$gene == 'KDR'), c('chrom', 'median_cnlr_seg', 'tcn.em', 'lcn.em', 'cn_state', 'filter')]
 
 rm(x, total, sn, x.gmm, plot)
-KDR = 'Diploid'
+KDR = NA
 
 
 ##----------------+
@@ -962,7 +962,7 @@ sample_summary = data.frame(id = sample,
                             RB1 = RB1,
                             PDGFRA = PDGFRA,
                             KDR = KDR,
-                            Highlevel_CNA = 'CDKN2A')
+                            Highlevel_CNA = 'none')
 paste(c('CDKN2A', 'EGFR'), collapse = ',')
 View(sample_summary)
 write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
