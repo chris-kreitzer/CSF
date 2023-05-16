@@ -39,7 +39,6 @@ GOIs = c('CDKN2A','CDK4','CDK6','PTEN','EGFR','PDGFRA',
          'KIT','KDR','MET','MDM2','MDM4','RB1','NF1',
          'TP53','FGF4', 'FGF19', 'PIK3CA', 'BRAF')
 
-
 for(i in 1:nrow(csf)){
   if(any(grepl(pattern = csf$Sample.ID[i], files))){
     next
@@ -54,7 +53,7 @@ for(i in 1:nrow(csf)){
 ## countMatrix pre-check:
 ## Normal/Tumor pairs
 ##----------------+
-number = 264
+number = 282
 sample = csf$Sample.ID[number]
 path = files[grep(pattern = sample, files)]
 
@@ -169,8 +168,8 @@ write.table(x = chris, file = paste0('07_CSF_refit/', sample, '/', sample, '_IMP
 rm(Mean, Sd, x, xp, snps, lower, upper, k, fourth, chris)
 
 
-Chris = 'EGFR_AMP'
-paste(c('EGFR_AMP', 'CDKN2A_Del', 'PDGFRA_AMP', 'KIT_AMP', 'MDM2'), collapse = ',')
+Chris = 'none'
+paste(c('MDM2_AMP', 'RB1_Del'), collapse = ',')
 
 
 
@@ -187,7 +186,7 @@ snp_nbhd = 250
 
 out = facetsSuite::run_facets(read_counts = countmatrix,
                               cval = cval,
-                              dipLogR = NULL,
+                              dipLogR = -0.04,
                               snp_nbhd = snp_nbhd,
                               seed = seed, 
                               genome = 'hg19', 
@@ -265,8 +264,8 @@ genes_all[,c('gene', 'chrom', 'tcn.em', 'cn_state', 'filter')]
 
 ##--- choose which FACETS call to use (broad / hisens run)
 
-CNA_fit = 'Manual GMM based.'
-Notes = 'Waterfall. Concordance (em/cf) filter. Low purity'
+CNA_fit = 'Manual GMM based'
+Notes = 'Waterfall. Contamination. Purity_NA'
 Clonality_analysis = 'no'
 Purity = NA
 Ploidy = NA
@@ -417,7 +416,7 @@ genes_broad[which(genes_broad$gene == 'EGFR'), c('chrom', 'median_cnlr_seg', 'tc
 
 rm(x, jj, total, sn, x.gmm, plot, gmm_out, gmm_out_all)
 
-EGFR = 'Amplification'
+EGFR = 'Diploid'
 
 
 ##----------------+
@@ -475,7 +474,7 @@ genes_broad[which(genes_broad$gene == 'CDK4'), c('chrom', 'median_cnlr_seg', 'tc
 
 rm(x, jj, total, sn, x.gmm, plot)
 
-CDK4 = 'Hetloss'
+CDK4 = 'Diploid'
 
 
 ##----------------+
@@ -962,8 +961,8 @@ sample_summary = data.frame(id = sample,
                             RB1 = RB1,
                             PDGFRA = PDGFRA,
                             KDR = KDR,
-                            Highlevel_CNA = paste(c('CDKN2A', 'EGFR'), collapse = ','))
-paste(c('CDKN2A', 'EGFR'), collapse = ',')
+                            Highlevel_CNA = 'CDKN2A')
+paste(c('MDM2', 'RB1'), collapse = ',')
 View(sample_summary)
 write.table(x = sample_summary, file = paste0('07_CSF_refit/', sample, '/', sample, '_summary.txt'), sep = '\t', row.names = F, quote = F)
 rm(arm, cdkn2a, exon, gmm_out, gmm_out_all, jj, out, CDKN2A, CDK4, CDK6, EGFR, Chris, diplogr, cluster, countmatrix, dense_out, gene_out, qc, sample_summary, position)
