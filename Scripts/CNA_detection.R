@@ -53,7 +53,7 @@ for(i in 1:nrow(csf)){
 ## countMatrix pre-check:
 ## Normal/Tumor pairs
 ##----------------+
-number = 290
+number = 290    # end
 sample = csf$Sample.ID[number]
 path = files[grep(pattern = sample, files)]
 
