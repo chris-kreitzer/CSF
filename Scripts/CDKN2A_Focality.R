@@ -205,6 +205,19 @@ genes_all[which(genes_all$gene == 'CDKN2A'), c('chrom', 'median_cnlr_seg', 'tcn.
 rm(x, jj, sn, x.gmm, plot, gmm_out, gmm_out_all)
 
 
+cdk = matrix(c(0.01,1, 0.01, 1, 0.666, 0.333), ncol = 3)
+colnames(cdk) = c('TCGA-Affymetrix', 'GMM-based', 'Facets')
+row.names(cdk) = c('Heterozygous-Loss', 'Homozygous-Loss')
 
+barplot(cdk, 
+        col= c('lightblue', 'darkblue'),
+        border="white", 
+        font.axis = 2, 
+        beside = T, 
+        legend = rownames(cdk), 
+        xlab = "method", 
+        font.lab = 2,
+        las = 1)
 
+abline(h = seq(0, 1, 0.2), lty = 'dashed', col = 'grey35', lwd = 0.55)
 
