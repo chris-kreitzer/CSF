@@ -18,7 +18,6 @@ GOIs = c('CDKN2A','CDK4','CDK6','PTEN','EGFR','PDGFRA',
          'TP53','FGF4', 'FGF19', 'PIK3CA', 'BRAF')
 
 
-
 sample = 'TCGA-41-3393-10A-01D-1353-08'
 countmatrix = readsnpmatrix(path = 'TCGA-41-3393-10A-01D-1353-08_TCGA-41-3393-01A-01D-1353-08_C5o0bmTF_countsMerged___normal_tumor.dat.gz')
 countmatrix = as.data.frame(countmatrix)
