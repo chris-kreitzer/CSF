@@ -8,12 +8,6 @@ for(i in 1:length(xx)){
 }
 
 
-library(xlsx)
-dim(all_out)
-write.xlsx(x = all_out, file = '~/Desktop/CSF.summary.xlsx')
-
-
-
 csf = all_out[,c(1,11:21)]
 head(csf)
 
