@@ -28,4 +28,6 @@ CDKN2A deep deletions in CSF samples
 
 High level / Facets / Nic Socci -- concordance!
 
-2-level change-points; DipLogR - Heterozygous / homozygous deletion!
+2-level change-points; DipLogR - Heterozygous / homozygous deletion!   
+
+change points / clinical pipeline / rose Brannon! algorithm
