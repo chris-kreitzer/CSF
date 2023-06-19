@@ -30,4 +30,7 @@ High level / Facets / Nic Socci -- concordance!
 
 2-level change-points; DipLogR - Heterozygous / homozygous deletion!   
 
-change points / clinical pipeline / rose Brannon! algorithm
+change points / clinical pipeline / rose Brannon! algorithm   
+
+
+no update from Rose so far
