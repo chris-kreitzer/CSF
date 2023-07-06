@@ -25,7 +25,6 @@ https://meetmsk.zoom.us/rec/share/fK8RGek6EQC501WG6sfjsodWM6Txfz4qaMM-iT2seqjU0l
 
 CDKN2A deep deletions in CSF samples   
 
-
 High level / Facets / Nic Socci -- concordance!
 
 2-level change-points; DipLogR - Heterozygous / homozygous deletion!   
