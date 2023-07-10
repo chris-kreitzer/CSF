@@ -198,8 +198,8 @@ bin.ve = factor(bin.ve, levels = bin.ve)
 #######################################
 ## make plot
 ## select the two color bars; either way 
-csf.color = '#F9BE76'
-tumor.color = 'grey15'
+csf.color = '#8073AC'
+tumor.color = '#D6604D'
 cancer.type = 'ctDNA in CSF (Glioma)'
 sample.size = length(unique(databaseTRUE$id))
 
@@ -288,4 +288,4 @@ loss.plot = ggplot(combined.loss.data, aes(x = bin)) +
 
 ## combine everything together
 genomewide = plot_grid(gain.plot, loss.plot, ncol = 1, align = 'v', axis = 'tblr', rel_heights = c(4, 4))
-ggsave(filename = '05_Plots/GenomeWidePlot.png', plot = genomewide, device = 'png', width = 14, height = 9.5, bg = 'white')
+ggsave(filename = '05_Plots/GenomeWidePlot.pdf', plot = genomewide, device = 'pdf', width = 14, height = 9.5, bg = 'white')
