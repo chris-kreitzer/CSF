@@ -142,7 +142,9 @@ segmentation.function = function(data, group, bin.size, chromosomes = c(1:23)){
 
 #######################################
 ## concentrate on gained regions first
-csf.gain = segmentation.function(data = CSF.Data, group = 'gain', bin.size = 1000000)
+CSF_Sub_Data = CSF.Data[which(CSF.Data$ID %in% chris$SAMPLE_ID[which(chris$TYPE == 'CSF')]), ]
+csf.gain = segmentation.function(data = CSF_Sub_Data, group = 'gain', bin.size = 1000000)
+
 csf.gain = csf.gain[!csf.gain$bin %in% c('248bin', '249bin', '250bin'), ]
 csf.gain = csf.gain[!(csf.gain$chrom == 7 & csf.gain$bin == '160bin'), ]
 csf.gain = csf.gain[!(csf.gain$chrom == 9 & csf.gain$bin == '142bin'), ]
@@ -155,11 +157,21 @@ csf.gain = csf.gain[!(csf.gain$chrom == 18 & csf.gain$bin %in% c('78bin', '77bin
 csf.gain = csf.gain[!(csf.gain$chrom == 20 & csf.gain$bin %in% c('63bin')), ]
 csf.gain = csf.gain[!(csf.gain$chrom == 21 & csf.gain$bin %in% c('39bin')), ]
 csf.gain = csf.gain[!(csf.gain$chrom == 22 & csf.gain$bin %in% c('35bin')), ]
+csf.gain = csf.gain[!(csf.gain$chrom == 13 & csf.gain$bin %in% c('96bin')), ]
 csf.gain = csf.gain[!(csf.gain$chrom == 23), ]
 
-tumor.gain = segmentation.function(data = Tumor.Data, group = 'gain', bin.size = 1000000)
+
+##-- Tumor
+Tumor_Sub_gain = Tumor.Data[which(Tumor.Data$ID %in% chris$SAMPLE_ID[which(chris$TYPE == 'Tumor')]), ]
+tumor.gain = segmentation.function(data = Tumor_Sub_gain, group = 'gain', bin.size = 1000000)
 tumor.gain = tumor.gain[!(tumor.gain$chrom == 23), ]
 
+for(i in unique(csf.gain$chrom)){
+  print(c(i, length(csf.gain$bin[which(csf.gain$chrom == i)])))
+}
+for(i in unique(tumor.gain$chrom)){
+  print(c(i, length(tumor.gain$bin[which(tumor.gain$chrom == i)])))
+}
 
 
 
@@ -202,6 +214,7 @@ csf.color = '#8073AC'
 tumor.color = '#D6604D'
 cancer.type = 'ctDNA in CSF (Glioma)'
 sample.size = length(unique(databaseTRUE$id))
+sample.size = 94+52
 
 
 gain.plot = ggplot(combined.gain.data, aes(x = bin)) +
@@ -232,7 +245,7 @@ gain.plot = ggplot(combined.gain.data, aes(x = bin)) +
 
 
 ##-- LOSS plots
-csf.loss = segmentation.function(data = CSF.Data, group = 'loss', bin.size = 1000000)
+csf.loss = segmentation.function(data = CSF_Sub_Data, group = 'loss', bin.size = 1000000)
 csf.loss = csf.loss[!csf.loss$bin %in% c('248bin', '249bin', '250bin'), ]
 csf.loss = csf.loss[!(csf.loss$chrom == 7 & csf.loss$bin == '160bin'), ]
 csf.loss = csf.loss[!(csf.loss$chrom == 9 & csf.loss$bin == '142bin'), ]
@@ -245,9 +258,10 @@ csf.loss = csf.loss[!(csf.loss$chrom == 18 & csf.loss$bin %in% c('78bin', '77bin
 csf.loss = csf.loss[!(csf.loss$chrom == 20 & csf.loss$bin %in% c('63bin')), ]
 csf.loss = csf.loss[!(csf.loss$chrom == 21 & csf.loss$bin %in% c('39bin')), ]
 csf.loss = csf.loss[!(csf.loss$chrom == 22 & csf.loss$bin %in% c('35bin')), ]
+csf.loss = csf.loss[!(csf.loss$chrom == 13 & csf.loss$bin %in% c('96bin')), ]
 csf.loss = csf.loss[!(csf.loss$chrom == 23), ]
 
-tumor.loss = segmentation.function(data = Tumor.Data, group = 'loss', bin.size = 1000000)
+tumor.loss = segmentation.function(data = Tumor_Sub_gain, group = 'loss', bin.size = 1000000)
 tumor.loss = tumor.loss[!(tumor.loss$chrom == 23), ]
 
 
@@ -288,4 +302,14 @@ loss.plot = ggplot(combined.loss.data, aes(x = bin)) +
 
 ## combine everything together
 genomewide = plot_grid(gain.plot, loss.plot, ncol = 1, align = 'v', axis = 'tblr', rel_heights = c(4, 4))
-ggsave(filename = '05_Plots/GenomeWidePlot.pdf', plot = genomewide, device = 'pdf', width = 14, height = 9.5, bg = 'white')
+ggsave(filename = '05_Plots/GenomeWidePlot_Pairs.pdf', plot = genomewide, device = 'pdf', width = 14, height = 9.5, bg = 'white')
+
+
+
+##-- Subhi request:
+chris = read.csv('~/Desktop/Chris_sample.txt', sep = '\t')
+head(chris)
+
+
+
+
