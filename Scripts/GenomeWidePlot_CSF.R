@@ -311,5 +311,3 @@ chris = read.csv('~/Desktop/Chris_sample.txt', sep = '\t')
 head(chris)
 
 
-
-
