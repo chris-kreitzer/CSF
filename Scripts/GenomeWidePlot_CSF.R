@@ -242,8 +242,6 @@ gain.plot = ggplot(combined.gain.data, aes(x = bin)) +
   labs(title = paste0(cancer.type, ' ', '(n=', sample.size, ')'))
 
 
-
-
 ##-- LOSS plots
 csf.loss = segmentation.function(data = CSF_Sub_Data, group = 'loss', bin.size = 1000000)
 csf.loss = csf.loss[!csf.loss$bin %in% c('248bin', '249bin', '250bin'), ]
