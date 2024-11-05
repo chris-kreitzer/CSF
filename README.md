@@ -19,14 +19,10 @@ CSF-resources: (02/08/2023):
 MADSEQ on CSF (ref_depth) - excluding low complixity regions
 CDKN2A - dipLogR
 High Level CnLr with Focality with Facets
-Allison meeting - CDKN2A and EGFR (correlation)   
 
 https://meetmsk.zoom.us/rec/share/fK8RGek6EQC501WG6sfjsodWM6Txfz4qaMM-iT2seqjU0lovcEaAX33ilGq7BuYV.wYUixftupUMzzSZm   
 
 CDKN2A deep deletions in CSF samples   
 
-High level / Facets / Nic Socci -- concordance!
-
 2-level change-points; DipLogR - Heterozygous / homozygous deletion!   
-change points / clinical pipeline / rose Brannon! algorithm
-Compendium calls - needed
+
